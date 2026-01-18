@@ -1,0 +1,10 @@
+.expandable-row-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Keep children full-width so they match other examples */
+expandable-row {
+  display: block;
+}

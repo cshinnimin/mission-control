@@ -7,9 +7,21 @@
 		<script type="module" src="src/components/presentational/data-row/DataRow.js"></script>
 		<script type="module" src="src/components/presentational/expandable-list/ExpandableList.js"></script>
 		<script type="module" src="src/components/presentational/expandable-row/ExpandableRow.js"></script>
+		<script type="module" src="src/components/presentational/expandable-row-list/ExpandableRowList.js"></script>
 		<style>
 			html, body { height: 100%; margin: 0; }
-			body { background: #000; display: flex; align-items: center; justify-content: center; padding: 40px; }
+			body {
+				background-color: #000;
+				background-image: url('assets/images/background.jpg');
+				background-repeat: no-repeat;
+				background-position: center center;
+				background-size: cover;
+				background-attachment: fixed;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 40px;
+			}
 			.wrap { width: 90%; max-width: 1100px; }
 		</style>
 	</head>
@@ -89,6 +101,125 @@
                     ]
                 }
             }'></expandable-row>
+
+		<h2 style="color: white; margin-top: 32px;">ExpandableRowList.js Example (5 children)</h2>
+		<expandable-row-list data='[
+				{
+					"data-row": {
+						"options": { "show_column_names": true, "border-color": "darkgreen" },
+						"columns": [
+							{ "name": "ID", "width": "10%", "contents": "R-01" },
+							{ "name": "Name", "width": "20%", "contents": "Parent 1" },
+							{ "name": "Description", "width": "15%", "contents": "Parent row description." },
+							{ "name": "Status", "width": "20%", "contents": "Open" },
+							{ "name": "Priority", "width": "20%", "contents": "High" },
+							{ "name": "ETA", "width": "15%", "contents": "2026-02-01" }
+						]
+					},
+					"expandable-list": {
+						"column-widths": ["10%", "20%", "15%", "20%", "20%", "15%"],
+						"row-border-colors": ["black","black","black","black"],
+						"row-data": [
+							["R-01-1","Child A","Detail 1","Open","Low","2026-02-01"],
+							["R-01-2","Child B","Detail 2","In Progress","Medium","2026-02-05"],
+							["R-01-3","Child C","Detail 3","Complete","High","2026-02-10"],
+							["R-01-4","Child D","Detail 4","Blocked","Low","2026-02-15"]
+						]
+					}
+				},
+				{
+					"data-row": {
+						"options": { "show_column_names": true, "border-color": "#871F78" },
+						"columns": [
+							{ "name": "ID", "width": "10%", "contents": "R-02" },
+							{ "name": "Name", "width": "20%", "contents": "Parent 2" },
+							{ "name": "Description", "width": "15%", "contents": "Another parent." },
+							{ "name": "Status", "width": "20%", "contents": "In Progress" },
+							{ "name": "Priority", "width": "20%", "contents": "Medium" },
+							{ "name": "ETA", "width": "15%", "contents": "2026-03-01" }
+						]
+					},
+					"expandable-list": {
+						"column-widths": ["10%", "20%", "15%", "20%", "20%", "15%"],
+						"row-border-colors": ["black","black","black","black"],
+						"row-data": [
+							["R-02-1","Child A","Detail 1","Open","Low","2026-03-01"],
+							["R-02-2","Child B","Detail 2","Open","Low","2026-03-05"],
+							["R-02-3","Child C","Detail 3","In Progress","Medium","2026-03-10"],
+							["R-02-4","Child D","Detail 4","Complete","High","2026-03-15"]
+						]
+					}
+				},
+				{
+					"data-row": {
+						"options": { "show_column_names": true, "border-color": "darkred" },
+						"columns": [
+							{ "name": "ID", "width": "10%", "contents": "R-03" },
+							{ "name": "Name", "width": "20%", "contents": "Parent 3" },
+							{ "name": "Description", "width": "15%", "contents": "Third parent." },
+							{ "name": "Status", "width": "20%", "contents": "Blocked" },
+							{ "name": "Priority", "width": "20%", "contents": "High" },
+							{ "name": "ETA", "width": "15%", "contents": "2026-04-01" }
+						]
+					},
+					"expandable-list": {
+						"column-widths": ["10%", "20%", "15%", "20%", "20%", "15%"],
+						"row-border-colors": ["black","black","black","black"],
+						"row-data": [
+							["R-03-1","Child A","Detail 1","Open","Low","2026-04-01"],
+							["R-03-2","Child B","Detail 2","In Progress","Medium","2026-04-05"],
+							["R-03-3","Child C","Detail 3","In Progress","Medium","2026-04-10"],
+							["R-03-4","Child D","Detail 4","Complete","High","2026-04-15"]
+						]
+					}
+				},
+				{
+					"data-row": {
+						"options": { "show_column_names": true, "border-color": "black" },
+						"columns": [
+							{ "name": "ID", "width": "10%", "contents": "R-04" },
+							{ "name": "Name", "width": "20%", "contents": "Parent 4" },
+							{ "name": "Description", "width": "15%", "contents": "Fourth parent." },
+							{ "name": "Status", "width": "20%", "contents": "Complete" },
+							{ "name": "Priority", "width": "20%", "contents": "Low" },
+							{ "name": "ETA", "width": "15%", "contents": "2026-05-01" }
+						]
+					},
+					"expandable-list": {
+						"column-widths": ["10%", "20%", "15%", "20%", "20%", "15%"],
+						"row-border-colors": ["black","black","black","black"],
+						"row-data": [
+							["R-04-1","Child A","Detail 1","Open","Low","2026-05-01"],
+							["R-04-2","Child B","Detail 2","Open","Low","2026-05-05"],
+							["R-04-3","Child C","Detail 3","Open","Low","2026-05-10"],
+							["R-04-4","Child D","Detail 4","In Progress","Medium","2026-05-15"]
+						]
+					}
+				},
+				{
+					"data-row": {
+						"options": { "show_column_names": true, "border-color": "black" },
+						"columns": [
+							{ "name": "ID", "width": "10%", "contents": "R-05" },
+							{ "name": "Name", "width": "20%", "contents": "Parent 5" },
+							{ "name": "Description", "width": "15%", "contents": "Fifth parent." },
+							{ "name": "Status", "width": "20%", "contents": "Open" },
+							{ "name": "Priority", "width": "20%", "contents": "Medium" },
+							{ "name": "ETA", "width": "15%", "contents": "2026-06-01" }
+						]
+					},
+					"expandable-list": {
+						"column-widths": ["10%", "20%", "15%", "20%", "20%", "15%"],
+						"row-border-colors": ["black","black","black","black"],
+						"row-data": [
+							["R-05-1","Child A","Detail 1","Open","Low","2026-06-01"],
+							["R-05-2","Child B","Detail 2","Open","Low","2026-06-05"],
+							["R-05-3","Child C","Detail 3","In Progress","Medium","2026-06-10"],
+							["R-05-4","Child D","Detail 4","Complete","High","2026-06-15"]
+						]
+					}
+				}
+			]'></expandable-row-list>
 		</div>
 	</body>
 </html>
