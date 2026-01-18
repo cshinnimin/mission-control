@@ -47,6 +47,8 @@ class ExpandableList extends HTMLElement {
     let parsed;
     try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
 
+    // render start
+
     const widths = Array.isArray(parsed['column-widths']) ? parsed['column-widths'] : [];
     const rows = Array.isArray(parsed['row-data']) ? parsed['row-data'] : [];
     const rowBorderColors = Array.isArray(parsed['row-border-colors']) ? parsed['row-border-colors'] : [];
@@ -79,17 +81,42 @@ class ExpandableList extends HTMLElement {
       return `<data-row data='${json}'></data-row>`;
     }).join('\n');
 
-    // Render simple static wrapper (no animation)
-    this.innerHTML = `<div class="expandable-list" style="background: #f3f4f6; padding: 8px; border-radius: 16px; box-sizing: border-box;">${rowsHtml}</div>`;
+    // Render a stable wrapper; only populate the inner rows container when expanded.
+    this.innerHTML = `
+      <div class="expandable-list" style="background: #f3f4f6; padding: 8px; border-radius: 16px; box-sizing: border-box;">
+        <div class="expandable-rows" aria-hidden="true"></div>
+      </div>`;
 
-    const container = this.querySelector('.expandable-list');
-    if (!container) return;
+    const rowsContainer = this.querySelector('.expandable-rows');
+    if (!rowsContainer) return;
 
-    // Simple expanded behavior: show or hide immediately without transitions
     if (isExpanded) {
-      this.style.display = '';
+      // Insert lightweight placeholders first to reserve the layout without
+      // instantiating heavy web components that may trigger reflow flashes.
+      const placeholderHtml = rows.map(() => `<div style="height:56px; margin-bottom:12px; background:transparent;"></div>`).join('');
+      rowsContainer.innerHTML = placeholderHtml;
+      rowsContainer.setAttribute('aria-hidden', 'false');
+
+      // Now create real <data-row> elements and replace placeholders one frame later
+      requestAnimationFrame(() => {
+        // replace placeholders with data-row elements
+        const placeholders = Array.from(rowsContainer.children);
+        rows.forEach((row, i) => {
+          const el = document.createElement('data-row');
+          const cols = row.map((cell, idx) => ({ name: '', width: widths[idx] || 'auto', contents: String(cell != null ? cell : '') }));
+          const rowColor = rowBorderColors[i] || 'black';
+          const payload = { options: { show_column_names: false, 'border-color': rowColor }, columns: cols };
+          el.setAttribute('data', JSON.stringify(payload).replace(/</g, '\u003c'));
+          // Replace placeholder with real element
+          const ph = placeholders[i];
+          if (ph && ph.parentNode) ph.parentNode.replaceChild(el, ph);
+          else rowsContainer.appendChild(el);
+        });
+      });
     } else {
-      this.style.display = 'none';
+      // clear rows to keep the DOM small and avoid layout spikes
+      rowsContainer.innerHTML = '';
+      rowsContainer.setAttribute('aria-hidden', 'true');
     }
   }
 }

@@ -49,8 +49,16 @@ class DataRow extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    // When the `data` attribute changes, re-render the component
-    if (name === 'data' && oldValue !== newValue) this.render();
+    // When the `data` attribute changes, re-render the component.
+    // If CSS hasn't loaded yet, defer rendering to avoid a flash caused by
+    // rendering without component CSS. We'll render after CSS is ensured.
+    if (name === 'data' && oldValue !== newValue) {
+      if (!this._cssLoaded) {
+        this._pendingDataChange = true;
+        return;
+      }
+      this.render();
+    }
   }
 
   connectedCallback() {
@@ -77,6 +85,11 @@ class DataRow extends HTMLElement {
       this._css = '';
     }
     this._cssLoaded = true;
+    // If a data attribute change happened while CSS was loading, render now.
+    if (this._pendingDataChange) {
+      this._pendingDataChange = false;
+      this.render();
+    }
   }
 
   render() {
