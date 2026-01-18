@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width,initial-scale=1" />
 		<title>Row Component Demo</title>
 		<script type="module" src="src/components/presentational/data-row/DataRow.js"></script>
+		<script type="module" src="src/components/presentational/expandable-list/ExpandableList.js"></script>
 		<style>
 			html, body { height: 100%; margin: 0; }
 			body { background: #000; display: flex; align-items: center; justify-content: center; padding: 40px; }
@@ -13,17 +14,55 @@
 	</head>
 	<body>
 		<div class="wrap">
+			<h2 style="color: white; margin-bottom: 8px;">DataRow.js Example</h2>
 			<data-row data='{
-				"options": { "show_column_names": false, "border-color": "darkgreen" },
-				"columns": [
-					{ "name": "ID", "width": "10%", "contents": "T-01" },
-					{ "name": "Name", "width": "20%", "contents": "Build feature" },
-					{ "name": "Description", "width": "15%", "contents": "This is a very long description that should overflow the available space and be truncated with an ellipsis; hovering should show the full text to the user for easy reading." },
-					{ "name": "Status", "width": "20%", "contents": "In Progress" },
-					{ "name": "Priority", "width": "20%", "contents": "High" },
-					{ "name": "ETA", "width": "15%", "contents": "2026-02-01" }
+					"options": { "show_column_names": false, "border-color": "darkgreen" },
+					"columns": [
+						{ "name": "ID", "width": "10%", "contents": "T-01" },
+						{ "name": "Name", "width": "20%", "contents": "Build feature" },
+						{ "name": "Description", "width": "15%", "contents": "This is a very long description that should overflow the available space and be truncated with an ellipsis; hovering should show the full text to the user for easy reading." },
+						{ "name": "Status", "width": "20%", "contents": "In Progress" },
+						{ "name": "Priority", "width": "20%", "contents": "High" },
+						{ "name": "ETA", "width": "15%", "contents": "2026-02-01" }
+					]
+				}'></data-row>
+
+			<div style="display:flex; align-items:center; justify-content:space-between; margin: 24px 0 8px;">
+				<h2 style="color: white; margin: 0;">ExpandableList.js Example</h2>
+				<button id="expand-toggle" aria-label="Toggle expandable list" style="background:#111; color:#fff; border:1px solid rgba(255,255,255,0.08); padding:4px 8px; border-radius:6px; cursor:pointer;">-</button>
+			</div>
+			<expandable-list expanded="true" data='{
+				"column-widths": ["10%", "20%", "15%", "20%", "20%", "15%"],
+				"row-border-colors": ["darkgreen","black","darkred","#871F78","black"],
+				"row-data": [
+					["T-01", "Build feature", "This is a very long description that should overflow the available space and be truncated with an ellipsis; hovering should show the full text to the user for easy reading.", "In Progress", "High", "2026-02-01"],
+					["T-02", "Write tests", "This is a very long description that should overflow the available space and be truncated with an ellipsis; hovering should show the full text to the user for easy reading.", "Open", "Medium", "2026-02-10"],
+					["T-03", "Code review", "This is a very long description that should overflow the available space and be truncated with an ellipsis; hovering should show the full text to the user for easy reading.", "Blocked", "Low", "2026-03-01"],
+					["T-04", "Deploy", "This is a very long description that should overflow the available space and be truncated with an ellipsis; hovering should show the full text to the user for easy reading.", "Complete", "High", "2026-02-20"],
+					["T-05", "Monitor", "This is a very long description that should overflow the available space and be truncated with an ellipsis; hovering should show the full text to the user for easy reading.", "In Progress", "Low", "2026-04-01"]
 				]
-			}'></data-row>
+			}'></expandable-list>
+
+			<script>
+				(function(){
+					const btn = document.getElementById('expand-toggle');
+					const list = document.querySelector('expandable-list');
+					if (!btn || !list) return;
+					// initialize label based on attribute
+					const isExpanded = !(list.getAttribute('expanded') === 'false' || list.getAttribute('expanded') === '0');
+					btn.textContent = isExpanded ? '-' : '+';
+					btn.addEventListener('click', () => {
+						const cur = !(list.getAttribute('expanded') === 'false' || list.getAttribute('expanded') === '0');
+						if (cur) {
+							list.setAttribute('expanded', 'false');
+							btn.textContent = '+';
+						} else {
+							list.setAttribute('expanded', 'true');
+							btn.textContent = '-';
+						}
+					});
+				})();
+			</script>
 		</div>
 	</body>
 </html>

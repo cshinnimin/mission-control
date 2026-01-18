@@ -1,4 +1,4 @@
-:host { display: block; box-sizing: border-box; }
+:host { display: block; box-sizing: border-box; margin-bottom: 3px; }
 .pill {
   display: flex;
   gap: 12px;
