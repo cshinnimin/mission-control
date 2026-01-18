@@ -1,9 +1,54 @@
 /* Container no longer draws the border - DataRow's internal .pill provides it */
-.container{border-radius:8px;padding:8px;background:#f3f4f6;border:2px solid #ddd;box-sizing:border-box}
-.top{display:block;position:relative}
-.main{display:block;min-width:0;padding-right:52px} /* reserve space for the toggle inside the pill */
-.toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:6px;border:none;background:#f0f0f0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
-.toggle:active{transform:translateY(-50%) scale(.98)}
-.chev{transition:transform .2s ease}
-.chev.open{transform:rotate(180deg)}
-.list{overflow:hidden;transition:max-height .28s ease;padding-top:8px}
+.container {
+	border-radius: 8px;
+	padding: 8px;
+	background: #f3f4f6;
+	border: 1px solid #ddd;
+	box-sizing: border-box;
+}
+
+.top {
+	display: block;
+	position: relative;
+}
+
+.main {
+	display: block;
+	min-width: 0;
+	padding-right: 52px; /* reserve space for the toggle inside the pill */
+}
+
+.toggle {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 36px;
+	height: 36px;
+	border-radius: 6px;
+	border: none;
+	background: #f0f0f0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	z-index: 2;
+}
+
+.toggle:active {
+	transform: translateY(-50%) scale(.98);
+}
+
+.chev {
+	transition: transform .2s ease;
+}
+
+.chev.open {
+	transform: rotate(180deg);
+}
+
+.list {
+	overflow: hidden;
+	transition: max-height .28s ease;
+	padding-top: 8px;
+}
