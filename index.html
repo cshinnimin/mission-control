@@ -7,6 +7,7 @@
 		<script type="module" src="src/components/presentational/data-row/DataRow.js"></script>
 		<script type="module" src="src/components/presentational/expandable-list/ExpandableList.js"></script>
 		<script type="module" src="src/components/presentational/expandable-row/ExpandableRow.js"></script>
+		<script type="module" src="src/components/presentational/progress-card/ProgressCard.js"></script>
 		<script type="module" src="src/components/presentational/expandable-row-list/ExpandableRowList.js"></script>
 		<style>
 			@font-face {
@@ -125,6 +126,22 @@
                     ]
                 }
             }'></expandable-row>
+
+		<h2 style="color: white; margin-top: 32px;">ProgressCard.js Example</h2>
+		<progress-card data='{
+				"title": "Card Title 1",
+				"data-row": {
+					"options": { "show_column_names": true, "border-color": "darkgreen" },
+					"columns": [
+						{ "name": "ID", "width": "10%", "contents": "P-01" },
+						{ "name": "Name", "width": "30%", "contents": "Progress item" },
+						{ "name": "Status", "width": "30%", "contents": "In Progress" },
+						{ "name": "ETA", "width": "30%", "contents": "2026-02-01" }
+					]
+				},
+				"progress": 35,
+				"blocked": 15
+			}'></progress-card>
 
 		<h2 style="color: white; margin-top: 32px;">ExpandableRowList.js Example (5 children)</h2>
 		<expandable-row-list data='[

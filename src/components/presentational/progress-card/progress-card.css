@@ -1,0 +1,56 @@
+:host { display:block; box-sizing: border-box; width: 100%; margin-bottom: 12px; }
+.card {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-sizing: border-box;
+}
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #0b1220;
+}
+.data-row-wrap { margin-bottom: 10px; }
+.progress-track {
+  position: relative;
+  width: 100%;
+  height: 18px;
+  background: #e5e7eb; /* gray background */
+  border: 1px solid #000; /* 1px black border around track */
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.progress-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0b1220;
+  white-space: nowrap;
+}
+.progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #064e3b; /* dark green */
+  height: 100%;
+  border-radius: 9999px 0 0 9999px;
+}
+.blocked-bar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: #7f1d1d; /* dark red */
+  height: 100%;
+  border-radius: 0 9999px 9999px 0;
+}
+.meta { margin-top: 8px; font-size: 12px; color: #334155; }
