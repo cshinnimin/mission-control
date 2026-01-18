@@ -30,16 +30,41 @@
 class ExpandableList extends HTMLElement {
   constructor() {
     super();
+    this._css = null;
+    this._cssLoaded = false;
+    this._pendingDataChange = false;
   }
 
   static get observedAttributes() { return ['data', 'expanded']; }
 
   attributeChangedCallback(name, oldV, newV) {
-    if ((name === 'data' || name === 'expanded') && oldV !== newV) this.render();
+    if ((name === 'data' || name === 'expanded') && oldV !== newV) {
+      if (!this._cssLoaded) {
+        this._pendingDataChange = true;
+        return;
+      }
+      this.render();
+    }
   }
 
   connectedCallback() {
-    this.render();
+    this._ensureCss().then(() => this.render());
+  }
+
+  async _ensureCss() {
+    if (this._cssLoaded) return;
+    try {
+      const url = new URL('./expandable-list.css', import.meta.url);
+      const res = await fetch(url.href);
+      this._css = await res.text();
+    } catch (e) {
+      this._css = '';
+    }
+    this._cssLoaded = true;
+    if (this._pendingDataChange) {
+      this._pendingDataChange = false;
+      this.render();
+    }
   }
 
   render() {
@@ -82,8 +107,9 @@ class ExpandableList extends HTMLElement {
     }).join('\n');
 
     // Render a stable wrapper; only populate the inner rows container when expanded.
-    this.innerHTML = `
-      <div class="expandable-list" style="background: #f3f4f6; padding: 8px; border-radius: 16px; box-sizing: border-box;">
+    const style = this._css ? `<style>${this._css}</style>` : '';
+    this.innerHTML = `${style}
+      <div class="expandable-list">
         <div class="expandable-rows" aria-hidden="true"></div>
       </div>`;
 
@@ -104,7 +130,7 @@ class ExpandableList extends HTMLElement {
     if (isExpanded) {
       // Insert lightweight placeholders first to reserve the layout without
       // instantiating heavy web components that may trigger reflow flashes.
-      const placeholderHtml = rows.map(() => `<div style="height:56px; margin-bottom:12px; background:transparent;"></div>`).join('');
+      const placeholderHtml = rows.map(() => `<div class="placeholder"></div>`).join('');
       rowsContainer.innerHTML = placeholderHtml;
       rowsContainer.setAttribute('aria-hidden', 'false');
 

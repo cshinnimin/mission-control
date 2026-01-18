@@ -20,27 +20,42 @@ class ExpandableRow extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this._css = `:host{display:block;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
-.container{border-radius:8px;padding:8px;background:#fff;border:1px solid #ddd}
-.top{display:flex;align-items:center}
-.main{flex:1;min-width:0}
-.toggle{width:36px;height:36px;border-radius:6px;border:none;background:#f0f0f0;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.toggle:active{transform:scale(.98)}
-.chev{transition:transform .2s ease}
-.chev.open{transform:rotate(180deg)}
-.list{overflow:hidden;transition:max-height .28s ease;padding-top:8px}
-`;
+    this._css = null;
+    this._cssLoaded = false;
+    this._pendingDataChange = false;
     this._expanded = false;
   }
 
   static get observedAttributes() { return ['data']; }
 
   attributeChangedCallback(name, oldVal, newVal) {
-    if (name === 'data' && oldVal !== newVal) this._render();
+    if (name === 'data' && oldVal !== newVal) {
+      if (!this._cssLoaded) {
+        this._pendingDataChange = true;
+        return;
+      }
+      this._render();
+    }
   }
 
   connectedCallback() {
-    this._render();
+    this._ensureCss().then(() => this._render());
+  }
+
+  async _ensureCss() {
+    if (this._cssLoaded) return;
+    try {
+      const url = new URL('./expandable-row.css', import.meta.url);
+      const res = await fetch(url.href);
+      this._css = await res.text();
+    } catch (e) {
+      this._css = '';
+    }
+    this._cssLoaded = true;
+    if (this._pendingDataChange) {
+      this._pendingDataChange = false;
+      this._render();
+    }
   }
 
   _render() {
@@ -52,8 +67,9 @@ class ExpandableRow extends HTMLElement {
     const listData = parsed['expandable-list'] || {};
 
     // Compose inner HTML - include css + structure
+    const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
     this.shadowRoot.innerHTML = `
-      <style>${this._css}</style>
+      ${style}
       <div class="container">
         <div class="top">
           <div class="main">
