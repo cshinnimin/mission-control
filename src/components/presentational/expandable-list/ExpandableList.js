@@ -90,6 +90,17 @@ class ExpandableList extends HTMLElement {
     const rowsContainer = this.querySelector('.expandable-rows');
     if (!rowsContainer) return;
 
+    if (!isExpanded) {
+      // When collapsed, hide the entire host so it occupies no layout space.
+      rowsContainer.innerHTML = '';
+      rowsContainer.setAttribute('aria-hidden', 'true');
+      this.style.display = 'none';
+      return;
+    }
+
+    // Ensure host is visible before populating to avoid measurement flashes
+    this.style.display = '';
+
     if (isExpanded) {
       // Insert lightweight placeholders first to reserve the layout without
       // instantiating heavy web components that may trigger reflow flashes.
@@ -113,10 +124,6 @@ class ExpandableList extends HTMLElement {
           else rowsContainer.appendChild(el);
         });
       });
-    } else {
-      // clear rows to keep the DOM small and avoid layout spikes
-      rowsContainer.innerHTML = '';
-      rowsContainer.setAttribute('aria-hidden', 'true');
     }
   }
 }
