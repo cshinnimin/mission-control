@@ -1,0 +1,42 @@
+{
+  "epics": [
+    {
+      "name": "Some epic name",
+      "description": "Some epic description",
+      "status": "IN_PROGRESS",
+      "jira_status": "In Progress",
+      "total_stories": 12,
+      "stories_complete": 4,
+      "stories_in_progress": 5,
+      "stories_blocked": 1,
+      "total_points": 39,
+      "points_complete": 13,
+      "points_in_progress": 11,
+      "stories": [
+        {
+          "name": "Some story name",
+          "description": "Some story description",
+          "status": "IN_PROGRESS",
+          "jira_status": "In Progress",
+          "total_tasks": 5,
+          "tasks_complete": 1,
+          "tasks_in_progress": 2,
+          "tasks_blocked": 1,
+          "total_points": 7,
+          "points_complete": 2,
+          "points_in_progress": 3,
+          "tasks": [
+            {
+              "name": "Some story name",
+              "description": "Some story description",
+              "points": 3,
+              "status": "IN_PROGRESS",
+              "jira_status": "In Progress",
+              "blocked": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

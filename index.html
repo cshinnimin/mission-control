@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Row Component Demo</title>
+		<script type="module" src="src/components/presentational/DataRow.js"></script>
+		<style>
+			html, body { height: 100%; margin: 0; }
+			body { background: #000; display: flex; align-items: center; justify-content: center; padding: 40px; }
+			.wrap { width: 90%; max-width: 1100px; }
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<data-row data='{
+				"columns": [
+					{ "name": "ID", "width": "10%", "contents": "T-01" },
+					{ "name": "Name", "width": "20%", "contents": "Build feature" },
+					{ "name": "Owner", "width": "15%", "contents": "Alex" },
+					{ "name": "Status", "width": "20%", "contents": "In Progress" },
+					{ "name": "Priority", "width": "20%", "contents": "High" },
+					{ "name": "ETA", "width": "15%", "contents": "2026-02-01" }
+				]
+			}'></data-row>
+		</div>
+	</body>
+</html>
