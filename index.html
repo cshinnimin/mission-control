@@ -6,6 +6,7 @@
 		<title>Row Component Demo</title>
 		<script type="module" src="src/components/presentational/data-row/DataRow.js"></script>
 		<script type="module" src="src/components/presentational/expandable-list/ExpandableList.js"></script>
+		<script type="module" src="src/components/presentational/expandable-row/ExpandableRow.js"></script>
 		<style>
 			html, body { height: 100%; margin: 0; }
 			body { background: #000; display: flex; align-items: center; justify-content: center; padding: 40px; }
@@ -43,26 +44,51 @@
 				]
 			}'></expandable-list>
 
-			<script>
-				(function(){
-					const btn = document.getElementById('expand-toggle');
-					const list = document.querySelector('expandable-list');
-					if (!btn || !list) return;
-					// initialize label based on attribute
-					const isExpanded = !(list.getAttribute('expanded') === 'false' || list.getAttribute('expanded') === '0');
-					btn.textContent = isExpanded ? '-' : '+';
-					btn.addEventListener('click', () => {
-						const cur = !(list.getAttribute('expanded') === 'false' || list.getAttribute('expanded') === '0');
-						if (cur) {
-							list.setAttribute('expanded', 'false');
-							btn.textContent = '+';
-						} else {
-							list.setAttribute('expanded', 'true');
-							btn.textContent = '-';
-						}
-					});
-				})();
-			</script>
+		<script>
+			(function(){
+				const btn = document.getElementById('expand-toggle');
+				const list = document.querySelector('expandable-list');
+				if (!btn || !list) return;
+				// initialize label based on attribute
+				const isExpanded = !(list.getAttribute('expanded') === 'false' || list.getAttribute('expanded') === '0');
+				btn.textContent = isExpanded ? '-' : '+';
+				btn.addEventListener('click', () => {
+					const cur = !(list.getAttribute('expanded') === 'false' || list.getAttribute('expanded') === '0');
+					if (cur) {
+						list.setAttribute('expanded', 'false');
+						btn.textContent = '+';
+					} else {
+						list.setAttribute('expanded', 'true');
+						btn.textContent = '-';
+					}
+				});
+			})();
+		</script>
+
+		<h2 style="color: white; margin-top: 32px;">ExpandableRow.js Example</h2>
+		<expandable-row data='{
+                "data-row": {
+                    "options": { "show_column_names": true, "border-color": "darkgreen" },
+                    "columns": [
+                        { "name": "ID", "width": "10%", "contents": "T-01" },
+                        { "name": "Name", "width": "20%", "contents": "Build feature" },
+                        { "name": "Description", "width": "15%", "contents": "This is a long description that may overflow and should be truncated with a tooltip." },
+                        { "name": "Status", "width": "20%", "contents": "In Progress" },
+                        { "name": "Priority", "width": "20%", "contents": "High" },
+                        { "name": "ETA", "width": "15%", "contents": "2026-02-01" }
+                    ]
+                },
+                "expandable-list": {
+                    "column-widths": ["10%", "20%", "15%", "20%", "20%", "15%"],
+                    "row-border-colors": ["darkgreen", "black"],
+                    "row-data": [
+                        ["T-01-1", "Task 1", "Detail A for T-01", "In Progress", "High", "2026-02-01"],
+                        ["T-01-2", "Task 2", "Detail B for T-01", "Open", "Low", "2026-02-10"],
+                        ["T-01-3", "Task 3", "Detail C for T-01", "Complete", "Medium", "2026-03-01"],
+                        ["T-01-4", "Task 4", "Detail D for T-01", "Blocked", "High", "2026-02-20"]
+                    ]
+                }
+            }'></expandable-row>
 		</div>
 	</body>
 </html>
