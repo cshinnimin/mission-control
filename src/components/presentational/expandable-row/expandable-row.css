@@ -50,5 +50,4 @@
 .list {
 	overflow: hidden;
 	transition: max-height .28s ease;
-	padding-top: 8px;
 }

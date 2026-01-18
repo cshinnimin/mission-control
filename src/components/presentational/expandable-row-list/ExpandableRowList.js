@@ -60,8 +60,10 @@ class ExpandableRowList extends HTMLElement {
 
     const style = this._css ? `<style>${this._css}</style>` : '';
     const content = rows.map((r) => {
+      // Ensure each child expandable-row gets a transparent border by default
+      const payload = Object.assign({}, r || {}, { options: Object.assign({}, (r && r.options) || {}, { 'border-color': 'transparent' }) });
       // stringify each child payload safely for embedding in attribute
-      const json = JSON.stringify(r).replace(/</g, '\u003c');
+      const json = JSON.stringify(payload).replace(/</g, '\u003c');
       return `<expandable-row data='${json}'></expandable-row>`;
     }).join('\n');
 

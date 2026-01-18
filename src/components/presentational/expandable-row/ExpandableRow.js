@@ -7,6 +7,9 @@
  * Expects `data` JSON with two top-level keys: `data-row` and `expandable-list`.
  * - `data-row`: object compatible with the existing `data-row` component
  * - `expandable-list`: object compatible with `expandable-list` component
+ * - `options`: (optional) object
+ *   - `border-color`: string (default: medium gray `#777`) - CSS color used for the
+ *     rounded container border around the row
  *
  * Layout:
  * - Rounded box (`.container`) with a top row containing the `data-row`
@@ -65,12 +68,15 @@ class ExpandableRow extends HTMLElement {
 
     const dataRow = parsed['data-row'] || {};
     const listData = parsed['expandable-list'] || {};
+    // options: allow configuring border color (default to medium gray)
+    const options = parsed.options || {};
+    const borderColor = options['border-color'] || '#777';
 
     // Compose inner HTML - include css + structure
     const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
     this.shadowRoot.innerHTML = `
       ${style}
-      <div class="container">
+      <div class="container" style="border: 2px solid ${this._escapeHtml(borderColor)};">
         <div class="top">
           <div class="main">
             <data-row data='${this._escapeHtml(JSON.stringify(dataRow))}'></data-row>
