@@ -1,8 +1,8 @@
 .expandable-list {
-	background: #f3f4f6;
-	padding: 8px;
-	border-radius: 16px;
-	box-sizing: border-box;
+  background: transparent;
+  padding: 8px;
+  border-radius: 16px;
+  box-sizing: border-box;
 }
 
 .expandable-rows {

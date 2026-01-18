@@ -5,7 +5,7 @@
   align-items: center;
   padding: 6px 10px;
   border-radius: 9999px;
-  background: #f3f4f6;
+  background: transparent;
   color: #111827;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   overflow: hidden;
