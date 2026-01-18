@@ -4,7 +4,7 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width,initial-scale=1" />
 		<title>Row Component Demo</title>
-		<script type="module" src="src/components/presentational/DataRow.js"></script>
+		<script type="module" src="src/components/presentational/data-row/DataRow.js"></script>
 		<style>
 			html, body { height: 100%; margin: 0; }
 			body { background: #000; display: flex; align-items: center; justify-content: center; padding: 40px; }
@@ -14,10 +14,11 @@
 	<body>
 		<div class="wrap">
 			<data-row data='{
+				"options": { "show_column_names": false, "border-color": "darkgreen" },
 				"columns": [
 					{ "name": "ID", "width": "10%", "contents": "T-01" },
 					{ "name": "Name", "width": "20%", "contents": "Build feature" },
-					{ "name": "Owner", "width": "15%", "contents": "Alex" },
+					{ "name": "Description", "width": "15%", "contents": "This is a very long description that should overflow the available space and be truncated with an ellipsis; hovering should show the full text to the user for easy reading." },
 					{ "name": "Status", "width": "20%", "contents": "In Progress" },
 					{ "name": "Priority", "width": "20%", "contents": "High" },
 					{ "name": "ETA", "width": "15%", "contents": "2026-02-01" }
