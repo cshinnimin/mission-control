@@ -230,13 +230,19 @@ class MissionControlEpicDetail extends HTMLElement {
         String(task.points || 0)
       ]);
       
+      // Apply same color coding to tasks based on their status
+      const taskRowColors = tasks.map(task => 
+        STORY_STATUS_COLORS[task.status] || 'transparent'
+      );
+      
       const columnWidths = ['10%', '30%', '40%', '10%', '10%'];
 
       return {
         "data-row": storyDataRow,
         "expandable-list": {
           "column-widths": columnWidths,
-          "row-data": taskRowData
+          "row-data": taskRowData,
+          "row-background-colors": taskRowColors
         },
         options: {
           "border-color": "black",

@@ -79,6 +79,7 @@ class ExpandableList extends HTMLElement {
     const widths = Array.isArray(parsed['column-widths']) ? parsed['column-widths'] : [];
     const rows = Array.isArray(parsed['row-data']) ? parsed['row-data'] : [];
     const rowBorderColors = Array.isArray(parsed['row-border-colors']) ? parsed['row-border-colors'] : [];
+    const rowBackgroundColors = Array.isArray(parsed['row-background-colors']) ? parsed['row-background-colors'] : [];
 
     // Determine expanded state (attribute may be "true"/"false" strings)
     const expandedAttr = this.getAttribute('expanded');
@@ -95,11 +96,12 @@ class ExpandableList extends HTMLElement {
         };
       });
 
-      // Determine row border color (single value per row). Default to black.
-      const rowColor = rowBorderColors[rowIdx] || 'black';
+      // Determine row border and background colors. Use separate arrays if provided.
+      const rowBorderColor = rowBorderColors[rowIdx] || 'black';
+      const rowBackgroundColor = rowBackgroundColors[rowIdx] || rowBorderColors[rowIdx] || 'black';
 
       const payload = {
-        options: { show_column_names: false, 'border-color': rowColor, 'background-color': rowColor },
+        options: { show_column_names: false, 'border-color': rowBorderColor, 'background-color': rowBackgroundColor },
         columns: cols
       };
 
@@ -143,8 +145,9 @@ class ExpandableList extends HTMLElement {
         rows.forEach((row, i) => {
           const el = document.createElement('data-row');
           const cols = row.map((cell, idx) => ({ name: '', width: widths[idx] || 'auto', contents: String(cell != null ? cell : '') }));
-          const rowColor = rowBorderColors[i] || 'black';
-          const payload = { options: { show_column_names: false, 'border-color': rowColor, 'background-color': rowColor }, columns: cols };
+          const rowBorderColor = rowBorderColors[i] || 'black';
+          const rowBackgroundColor = rowBackgroundColors[i] || rowBorderColors[i] || 'black';
+          const payload = { options: { show_column_names: false, 'border-color': rowBorderColor, 'background-color': rowBackgroundColor }, columns: cols };
           el.setAttribute('data', JSON.stringify(payload).replace(/</g, '\u003c'));
           // Replace placeholder with real element
           const ph = placeholders[i];
