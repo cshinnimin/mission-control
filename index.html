@@ -163,6 +163,18 @@
         'Email Marketing Platform',
         'Reporting & Insights'
       ];
+      const ownerNames = [
+        'Sarah Johnson',
+        'Michael Chen',
+        'Emily Rodriguez',
+        'David Kim',
+        'Jessica Williams',
+        'Alex Thompson',
+        'Maria Garcia',
+        'James Wilson',
+        'Rachel Anderson',
+        'Chris Martinez'
+      ];
 
       const epics = epicNames.map((epicName, epicIndex) => {
         const numStories = 3 + Math.floor(Math.random() * 4); // 3-6 stories
@@ -274,6 +286,7 @@
           id: `EPIC-${(epicIndex + 1).toString().padStart(3, '0')}`,
           name: epicName,
           description: `Epic description for ${epicName}. This epic contains multiple user stories and tasks to deliver this feature.`,
+          owner: ownerNames[epicIndex],
           status: statusCodes[epicStatusIndex],
           jira_status: statuses[epicStatusIndex],
           total_stories: numStories,

@@ -11,6 +11,7 @@
  *       "id": "EPIC-123",
  *       "name": "Some epic name",
  *       "description": "Some epic description",
+ *       "owner": "Jane Doe",
  *       "status": "IN_PROGRESS",
  *       "jira_status": "In Progress",
  *       "total_stories": 12,

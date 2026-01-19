@@ -10,6 +10,7 @@
  *     "id": "EPIC-123",
  *     "name": "Some epic name",
  *     "description": "Some epic description",
+ *     "owner": "Jane Doe",
  *     "status": "IN_PROGRESS",
  *     "jira_status": "In Progress",
  *     "total_stories": 12,
@@ -153,38 +154,43 @@ class MissionControlEpicDetail extends HTMLElement {
         },
         columns: [
           {
+            name: "Owner",
+            width: "20%",
+            contents: epic.owner || "Unassigned"
+          },
+          {
             name: "Status",
             width: "20%",
             contents: epic.jira_status || epic.status
           },
           {
             name: "Stories",
-            width: "12%",
+            width: "10%",
             contents: String(epic.total_stories || 0)
           },
           {
             name: "Completed",
-            width: "12%",
+            width: "10%",
             contents: String(epic.stories_complete || 0)
           },
           {
             name: "Blocked",
-            width: "12%",
+            width: "10%",
             contents: String(epic.stories_blocked || 0)
           },
           {
             name: "Total Points",
-            width: "14%",
+            width: "10%",
             contents: String(epic.total_points || 0)
           },
           {
             name: "Completed Points",
-            width: "16%",
+            width: "10%",
             contents: String(epic.points_complete || 0)
           },
           {
             name: "% Complete",
-            width: "14%",
+            width: "10%",
             contents: `${percentComplete}%`
           }
         ]

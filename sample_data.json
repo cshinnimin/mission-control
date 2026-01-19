@@ -4,6 +4,7 @@
       "id": "EPIC-001",
       "name": "Some epic name",
       "description": "Some epic description",
+      "owner": "John Smith",
       "status": "IN_PROGRESS",
       "jira_status": "In Progress",
       "total_stories": 12,
