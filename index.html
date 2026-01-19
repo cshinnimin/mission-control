@@ -10,6 +10,7 @@
 		<script type="module" src="src/components/presentational/progress-card/ProgressCard.js"></script>
 		<script type="module" src="src/components/presentational/progress-card-grid/ProgressCardGrid.js"></script>
 		<script type="module" src="src/components/presentational/expandable-row-list/ExpandableRowList.js"></script>
+		<script type="module" src="src/components/presentational/header-label/HeaderLabel.js"></script>
 		<style>
 			@font-face {
 				font-family: 'Orbitron';
@@ -227,6 +228,37 @@
 				}
 			]
 		}'></progress-card-grid>
+
+		<h2 style="color: white; margin-top: 32px;">HeaderLabel.js Example</h2>
+		<header-label data='{
+				"text": "Small Left Aligned Label",
+				"options": {
+					"border-color": "darkgreen",
+					"background-color": "transparent",
+					"size": "small",
+					"alignment": "left"
+				}
+			}'></header-label>
+
+		<header-label data='{
+				"text": "Medium Center Aligned Label",
+				"options": {
+					"border-color": "black",
+					"background-color": "#f0f0f0",
+					"size": "medium",
+					"alignment": "center"
+				}
+			}'></header-label>
+
+		<header-label data='{
+				"text": "Large Right Label",
+				"options": {
+					"border-color": "darkred",
+					"background-color": "rgba(255, 0, 0, 0.1)",
+					"size": "large",
+					"alignment": "right"
+				}
+			}'></header-label>
 
 		<h2 style="color: white; margin-top: 32px;">ExpandableRowList.js Example (5 children)</h2>
 		<expandable-row-list data='[

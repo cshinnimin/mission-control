@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  box-sizing: border-box;
+  margin-bottom: 3px;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: transparent;
+  color: #111827;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.label-text {
+  flex: 1;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
