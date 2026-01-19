@@ -2,10 +2,11 @@
  * MissionControl Web Component (Container)
  *
  * Usage:
- * <mission-control data='{ "epics": [...] }'></mission-control>
+ * <mission-control data='{ "name": "Development Team Mission Control", "epics": [...] }'></mission-control>
  *
  * Expected `data` JSON:
  * {
+ *   "name": "Development Team Mission Control",
  *   "epics": [
  *     {
  *       "name": "Some epic name",
@@ -51,6 +52,7 @@
  * }
  *
  * Inputs (via `data` attribute, JSON):
+ * - name: string (optional) - the title to display in the header label above the overview
  * - epics: array of epic objects
  *   - name: string - epic name
  *   - description: string - epic description
@@ -68,6 +70,7 @@
  * - currentView: 'overview' | 'epic-detail' - which view to display
  * - selectedEpic: object | null - the currently selected epic (if any)
  */
+import '../../presentational/header-label/HeaderLabel.js';
 import '../mission-control-overview/MissionControlOverview.js';
 import '../mission-control-epic-detail/MissionControlEpicDetail.js';
 
@@ -107,12 +110,28 @@ class MissionControl extends HTMLElement {
       return;
     }
 
-    const { epics = [] } = parsedData;
+    const { name, epics = [] } = parsedData;
 
     // Create container
     const container = document.createElement('div');
     container.style.width = '100%';
     container.style.height = '100%';
+
+    // Create header label if name is provided
+    if (name) {
+      const headerLabel = document.createElement('header-label');
+      headerLabel.setAttribute('data', JSON.stringify({
+        text: name,
+        options: {
+          'border-color': 'transparent',
+          'background-color': 'transparent',
+          'size': 'large',
+          'alignment': 'center'
+        }
+      }));
+      headerLabel.style.marginBottom = '16px';
+      container.appendChild(headerLabel);
+    }
 
     // Create overview component (visible on load)
     const overview = document.createElement('mission-control-overview');
