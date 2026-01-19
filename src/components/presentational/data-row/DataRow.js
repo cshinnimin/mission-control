@@ -8,7 +8,8 @@
  * {
  *   "options": {
  *     "show_column_names": true,
- *     "border-color": "darkgreen"
+ *     "border-color": "darkgreen",
+ *     "background-color": "#871F78"
  *   },
  *   "columns": [
  *     { "name": "ID", "width": "10%", "contents": "T-01" },
@@ -24,6 +25,10 @@
  * - options: (optional) object
  *   - show_column_names: boolean (default: true) - whether to render the small column name label above contents
  *   - border-color: string (default: "black") - CSS color used for 2px border around the row
+ *   - background-color: string (optional) - CSS color used as a subtle background
+ *     highlight for the row. If omitted the row is transparent. When provided
+ *     the component converts the color to an `rgba(...)` with light alpha so
+ *     it reads as a soft highlight behind the row.
  * - columns: array of column objects
  *   - name: string - column label
  *   - width: string - CSS-like width (e.g., "20%", "120px", or "auto")
@@ -114,6 +119,13 @@ class DataRow extends HTMLElement {
       ? parsed.options['border-color']
       : 'black';
 
+    // background color option: optional. If provided, convert to an rgba
+    // value with subtle alpha so it reads as a highlight behind the row.
+    const rawBg = parsed && parsed.options && parsed.options['background-color']
+      ? parsed.options['background-color']
+      : null;
+    const bgRgba = rawBg ? this._colorToRgba(String(rawBg), 0.12) : 'transparent';
+
     // Compute pixel widths for percent-based columns so gaps/padding do not
     // cause clipping. Measurements are approximate based on CSS values used.
     const gapPx = 12; // matches CSS gap between columns
@@ -155,10 +167,11 @@ class DataRow extends HTMLElement {
       </div>`;
     }).join('');
 
-    // Render shadow DOM; apply 1px border with the configured color
+    // Render shadow DOM; apply 2px border with the configured color and
+    // an optional subtle background highlight.
     this.shadowRoot.innerHTML = `
       ${style}
-      <div class="pill" style="border: 2px solid ${this._escapeHtml(borderColor)};">
+      <div class="pill" style="border: 2px solid ${this._escapeHtml(borderColor)}; background-color: ${this._escapeHtml(bgRgba)};">
         ${colsHtml}
       </div>
     `;
@@ -184,6 +197,62 @@ class DataRow extends HTMLElement {
       .replace(/>/g, '&gt;')
       .replace(/\"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  _colorToRgba(colorStr, alpha) {
+    // Convert a CSS color string to an rgba(...) string using the provided alpha.
+    // Supports hex (#rgb, #rrggbb), rgb/rgba, or named colors via computed style.
+    if (!colorStr) return 'transparent';
+    const s = String(colorStr).trim();
+
+    // hex (#rgb or #rrggbb)
+    if (s[0] === '#') {
+      let r, g, b;
+      if (s.length === 4) {
+        r = parseInt(s[1] + s[1], 16);
+        g = parseInt(s[2] + s[2], 16);
+        b = parseInt(s[3] + s[3], 16);
+      } else if (s.length === 7) {
+        r = parseInt(s.slice(1,3), 16);
+        g = parseInt(s.slice(3,5), 16);
+        b = parseInt(s.slice(5,7), 16);
+      } else {
+        return 'transparent';
+      }
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    // rgb/rgba input
+    const m = s.match(/rgba?\(([^)]+)\)/i);
+    if (m) {
+      const parts = m[1].split(',').map(p => p.trim());
+      const r = parseInt(parts[0], 10) || 0;
+      const g = parseInt(parts[1], 10) || 0;
+      const b = parseInt(parts[2], 10) || 0;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    // Fallback: use computed style for named colors
+    try {
+      const el = document.createElement('div');
+      el.style.color = s;
+      el.style.display = 'none';
+      document.body.appendChild(el);
+      const cs = getComputedStyle(el).color; // e.g., 'rgb(135, 31, 120)'
+      document.body.removeChild(el);
+      const mm = cs.match(/rgba?\(([^)]+)\)/i);
+      if (mm) {
+        const parts = mm[1].split(',').map(p => p.trim());
+        const r = parseInt(parts[0], 10) || 0;
+        const g = parseInt(parts[1], 10) || 0;
+        const b = parseInt(parts[2], 10) || 0;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+    } catch (e) {
+      // ignore and fallthrough
+    }
+
+    return 'transparent';
   }
 }
 

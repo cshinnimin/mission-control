@@ -18,6 +18,10 @@
  * - A rounded progress track beneath the data-row. The left side shows
  *   completed progress in dark green, the right side shows blocked portion
  *   in dark red. The track fills the horizontal space of its container.
+ *
+ * Note: The nested `data-row` payload accepts the `options.background-color`
+ * property (in addition to `options.border-color`) to request a subtle
+ * highlighted background behind the row.
  */
 import '../data-row/DataRow.js';
 

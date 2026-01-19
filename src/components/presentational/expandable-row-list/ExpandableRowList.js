@@ -7,6 +7,10 @@
  * Expects `data` to be an array where each entry is the same payload
  * that an individual <expandable-row> expects (object with `data-row`
  * and `expandable-list` keys).
+ *
+ * Note: This component ensures child `expandable-row` entries receive
+ * `options.border-color` and `options.background-color` defaulting to
+ * `transparent` unless overridden in the provided payload.
  */
 import '../expandable-row/ExpandableRow.js';
 
@@ -60,8 +64,9 @@ class ExpandableRowList extends HTMLElement {
 
     const style = this._css ? `<style>${this._css}</style>` : '';
     const content = rows.map((r) => {
-      // Ensure each child expandable-row gets a transparent border by default
-      const payload = Object.assign({}, r || {}, { options: Object.assign({}, (r && r.options) || {}, { 'border-color': 'transparent' }) });
+      // Ensure each child expandable-row gets a transparent border and
+      // transparent background by default
+      const payload = Object.assign({}, r || {}, { options: Object.assign({}, (r && r.options) || {}, { 'border-color': 'transparent', 'background-color': 'transparent' }) });
       // stringify each child payload safely for embedding in attribute
       const json = JSON.stringify(payload).replace(/</g, '\u003c');
       return `<expandable-row data='${json}'></expandable-row>`;

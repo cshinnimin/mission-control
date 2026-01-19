@@ -3,6 +3,16 @@
  *
  * Usage:
  * <expandable-row data='{data}'></expandable-row>
+ * 
+ * Example `data` JSON:
+ * {
+ *     "data-row": { ... },            // same schema as `data-row` component
+ *     "expandable-list": { ... },     // same schema as `expandable-list` component
+ *     "options": {
+ *         "border-color": "black",
+ *         "background-color": "transparent"
+ *      }
+ * }
  *
  * Expects `data` JSON with two top-level keys: `data-row` and `expandable-list`.
  * - `data-row`: object compatible with the existing `data-row` component
@@ -10,6 +20,11 @@
  * - `options`: (optional) object
  *   - `border-color`: string (default: medium gray `#777`) - CSS color used for the
  *     rounded container border around the row
+ *   - `background-color`: string (optional) - CSS color used as a subtle
+ *     background highlight for the container. If you want to highlight the
+ *     inner `data-row`, include `background-color` inside the `data-row`
+ *     payload; `data-row` supports `options.background-color` which will be
+ *     applied as a soft, semi-transparent fill.
  *
  * Layout:
  * - Rounded box (`.container`) with a top row containing the `data-row`

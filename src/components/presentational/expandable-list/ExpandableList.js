@@ -4,7 +4,7 @@
  * Usage:
  * <expandable-list data='{...}' expanded="true"></expandable-list>
  *
- * Expected `data` JSON shape (for now):
+ * Expected `data` JSON:
  * {
  *   "column-widths": ["10%","20%",...],
  *   "row-border-colors": ["black","black",...],
@@ -19,7 +19,9 @@
  * Additionally, if `row-border-colors` is provided it should be a single
  * array with one color per row. Each color will be forwarded into the
  * corresponding <data-row> payload as `options.border-color` so the row
- * component can apply the desired border color.
+ * component can apply the desired border color. The same color is also
+ * forwarded as `options.background-color` (unless overridden) so callers
+ * can request a subtle filled background in addition to the border.
  *
  * Attribute: `expanded` (optional)
  * - If omitted or set to "true" (string), the list is rendered normally.
@@ -97,7 +99,7 @@ class ExpandableList extends HTMLElement {
       const rowColor = rowBorderColors[rowIdx] || 'black';
 
       const payload = {
-        options: { show_column_names: false, 'border-color': rowColor },
+        options: { show_column_names: false, 'border-color': rowColor, 'background-color': rowColor },
         columns: cols
       };
 
@@ -142,7 +144,7 @@ class ExpandableList extends HTMLElement {
           const el = document.createElement('data-row');
           const cols = row.map((cell, idx) => ({ name: '', width: widths[idx] || 'auto', contents: String(cell != null ? cell : '') }));
           const rowColor = rowBorderColors[i] || 'black';
-          const payload = { options: { show_column_names: false, 'border-color': rowColor }, columns: cols };
+          const payload = { options: { show_column_names: false, 'border-color': rowColor, 'background-color': rowColor }, columns: cols };
           el.setAttribute('data', JSON.stringify(payload).replace(/</g, '\u003c'));
           // Replace placeholder with real element
           const ph = placeholders[i];
