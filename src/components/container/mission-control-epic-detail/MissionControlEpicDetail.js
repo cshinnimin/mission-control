@@ -7,6 +7,7 @@
  * Expected `data` JSON:
  * {
  *   "epic": {
+ *     "id": "EPIC-123",
  *     "name": "Some epic name",
  *     "description": "Some epic description",
  *     "status": "IN_PROGRESS",
@@ -19,15 +20,53 @@
  *     "points_complete": 13,
  *     "points_in_progress": 11,
  *     "points_blocked": 2,
- *     "stories": [...]
+ *     "stories": [
+ *       {
+ *         "id": "STORY-456",
+ *         "name": "Story name",
+ *         "description": "Story description",
+ *         "status": "IN_PROGRESS",
+ *         "points": 7,
+ *         "tasks": [
+ *           {
+ *             "id": "TASK-789",
+ *             "name": "Task name",
+ *             "description": "Task description",
+ *             "status": "IN_PROGRESS",
+ *             "points": 3
+ *           }
+ *         ]
+ *       }
+ *     ]
  *   }
  * }
  *
  * Inputs (via `data` attribute, JSON):
- * - epic: object - epic details (structure to be determined)
+ * - epic: object - epic details
+ *   - id: string - epic identifier (e.g., "EPIC-123")
+ *   - stories: array of story objects
+ *     - id: string - story identifier (e.g., "STORY-456")
+ *     - tasks: array of task objects
+ *       - id: string - task identifier (e.g., "TASK-789")
  *
- * Note: This is a placeholder component. Full implementation pending.
+ * Layout:
+ * - Single progress-card at top showing epic summary
+ * - Expandable-row-list below with one row per story
+ * - Each story row contains tasks in an expandable-list
+ * - Story background color depends on status:
+ *   - IN_PROGRESS: darkgreen
+ *   - COMPLETE: rgba(128, 0, 128, 0.12)
+ *   - BLOCKED: darkred
  */
+import '../../presentational/progress-card/ProgressCard.js';
+import '../../presentational/expandable-row-list/ExpandableRowList.js';
+
+// Status color constants for easier maintenance
+const STORY_STATUS_COLORS = {
+  IN_PROGRESS: 'darkgreen',
+  COMPLETE: 'rgba(128, 0, 128, 0.12)',
+  BLOCKED: 'darkred'
+};
 
 class MissionControlEpicDetail extends HTMLElement {
   constructor() {
@@ -61,15 +100,173 @@ class MissionControlEpicDetail extends HTMLElement {
       return;
     }
 
-    // Placeholder implementation
     const { epic } = parsedData;
+    if (!epic) {
+      this.innerHTML = '<div>Epic Detail - No epic data provided</div>';
+      return;
+    }
+
     const container = document.createElement('div');
+    container.style.width = '100%';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '20px';
     container.style.padding = '20px';
-    container.innerHTML = `
-      <h2>Epic Detail (Placeholder)</h2>
-      <p>Epic: ${epic?.name || 'Unknown'}</p>
-      <p>This component will be implemented later.</p>
-    `;
+
+    // Create back button
+    const backButton = document.createElement('button');
+    backButton.textContent = '← Back to Overview';
+    backButton.style.alignSelf = 'flex-start';
+    backButton.style.padding = '8px 16px';
+    backButton.style.cursor = 'pointer';
+    backButton.style.fontSize = '14px';
+    backButton.style.border = '1px solid #ccc';
+    backButton.style.borderRadius = '4px';
+    backButton.style.backgroundColor = '#f5f5f5';
+    backButton.addEventListener('click', () => {
+      this.dispatchEvent(new CustomEvent('back-to-overview', {
+        bubbles: true,
+        composed: true
+      }));
+    });
+    container.appendChild(backButton);
+
+    // Create progress card for the epic
+    const progress = epic.total_points > 0 
+      ? (epic.points_complete / epic.total_points) * 100 
+      : 0;
+    const blocked = epic.total_points > 0
+      ? (epic.points_blocked / epic.total_points) * 100
+      : 0;
+
+    const progressCardData = {
+      title: epic.name,
+      progress: progress,
+      blocked: blocked,
+      "data-row": {
+        options: {
+          show_column_names: true,
+          "border-color": "transparent",
+          "background-color": "transparent"
+        },
+        columns: [
+          {
+            name: "Status",
+            width: "45%",
+            contents: epic.jira_status || epic.status
+          },
+          {
+            name: "Stories",
+            width: "20%",
+            contents: String(epic.total_stories || 0)
+          },
+          {
+            name: "Completed",
+            width: "20%",
+            contents: String(epic.stories_complete || 0)
+          },
+          {
+            name: "Blocked",
+            width: "15%",
+            contents: String(epic.stories_blocked || 0)
+          }
+        ]
+      }
+    };
+
+    const progressCard = document.createElement('progress-card');
+    progressCard.setAttribute('data', JSON.stringify(progressCardData));
+    container.appendChild(progressCard);
+
+    // Create expandable-row-list for stories
+    const stories = Array.isArray(epic.stories) ? epic.stories : [];
+    
+    const expandableRows = stories.map(story => {
+      const backgroundColor = STORY_STATUS_COLORS[story.status] || 'transparent';
+      
+      // Build data-row for the story
+      const storyDataRow = {
+        options: {
+          show_column_names: true,
+          "border-color": "black",
+          "background-color": backgroundColor
+        },
+        columns: [
+          {
+            name: "ID",
+            width: "10%",
+            contents: story.id || ''
+          },
+          {
+            name: "Name",
+            width: "30%",
+            contents: story.name || ''
+          },
+          {
+            name: "Description",
+            width: "40%",
+            contents: story.description || ''
+          },
+          {
+            name: "Status",
+            width: "10%",
+            contents: story.status || ''
+          },
+          {
+            name: "Points",
+            width: "10%",
+            contents: String(story.points || story.total_points || 0)
+          }
+        ]
+      };
+
+      // Build expandable-list for tasks
+      const tasks = Array.isArray(story.tasks) ? story.tasks : [];
+      const taskRows = tasks.map(task => ({
+        columns: [
+          {
+            name: "ID",
+            width: "10%",
+            contents: task.id || ''
+          },
+          {
+            name: "Name",
+            width: "30%",
+            contents: task.name || ''
+          },
+          {
+            name: "Description",
+            width: "40%",
+            contents: task.description || ''
+          },
+          {
+            name: "Status",
+            width: "10%",
+            contents: task.status || ''
+          },
+          {
+            name: "Points",
+            width: "10%",
+            contents: String(task.points || 0)
+          }
+        ]
+      }));
+
+      return {
+        "data-row": storyDataRow,
+        "expandable-list": {
+          rows: taskRows
+        },
+        options: {
+          "border-color": "black",
+          "background-color": "transparent"
+        }
+      };
+    });
+
+    const expandableRowList = document.createElement('expandable-row-list');
+    expandableRowList.setAttribute('data', JSON.stringify(expandableRows));
+    container.appendChild(expandableRowList);
 
     this.innerHTML = '';
     this.appendChild(container);
@@ -77,3 +274,4 @@ class MissionControlEpicDetail extends HTMLElement {
 }
 
 customElements.define('mission-control-epic-detail', MissionControlEpicDetail);
+

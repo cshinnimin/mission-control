@@ -9,6 +9,7 @@
  *   "name": "Development Team Mission Control",
  *   "epics": [
  *     {
+ *       "id": "EPIC-123",
  *       "name": "Some epic name",
  *       "description": "Some epic description",
  *       "status": "IN_PROGRESS",
@@ -23,6 +24,7 @@
  *       "points_blocked": 2,
  *       "stories": [
  *         {
+ *           "id": "STORY-456",
  *           "name": "Some story name",
  *           "description": "Some story description",
  *           "status": "IN_PROGRESS",
@@ -37,6 +39,7 @@
  *           "points_blocked": 1,
  *           "tasks": [
  *             {
+ *               "id": "TASK-789",
  *               "name": "Some task name",
  *               "description": "Some task description",
  *               "points": 3,
@@ -54,6 +57,7 @@
  * Inputs (via `data` attribute, JSON):
  * - name: string (optional) - the title to display in the header label above the overview
  * - epics: array of epic objects
+ *   - id: string - epic identifier (e.g., "EPIC-123")
  *   - name: string - epic name
  *   - description: string - epic description
  *   - status: string - epic status code
@@ -137,10 +141,28 @@ class MissionControl extends HTMLElement {
     const overview = document.createElement('mission-control-overview');
     overview.setAttribute('data', JSON.stringify({ epics }));
     overview.style.display = this._state.currentView === 'overview' ? 'block' : 'none';
+    
+    // Listen for epic-selected events
+    overview.addEventListener('epic-selected', (e) => {
+      this._state.currentView = 'epic-detail';
+      this._state.selectedEpic = e.detail.epic;
+      this.render();
+    });
 
     // Create epic detail component (hidden on load)
     const epicDetail = document.createElement('mission-control-epic-detail');
     epicDetail.style.display = this._state.currentView === 'epic-detail' ? 'block' : 'none';
+    
+    if (this._state.selectedEpic) {
+      epicDetail.setAttribute('data', JSON.stringify({ epic: this._state.selectedEpic }));
+    }
+    
+    // Listen for back navigation from detail view
+    epicDetail.addEventListener('back-to-overview', () => {
+      this._state.currentView = 'overview';
+      this._state.selectedEpic = null;
+      this.render();
+    });
 
     container.appendChild(overview);
     container.appendChild(epicDetail);

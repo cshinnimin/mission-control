@@ -91,6 +91,18 @@ class ProgressCardGrid extends HTMLElement {
         const payload = JSON.stringify(card).replace(/</g, '\u003c');
         el.setAttribute('data', payload);
         el.setAttribute('role', 'listitem');
+        el.style.cursor = 'pointer';
+        
+        // Add click handler to dispatch card-click event with index
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.dispatchEvent(new CustomEvent('card-click', {
+            detail: { index: i },
+            bubbles: true,
+            composed: true
+          }));
+        });
+        
         const ph = placeholders[i];
         if (ph && ph.parentNode) ph.parentNode.replaceChild(el, ph);
         else grid.appendChild(el);

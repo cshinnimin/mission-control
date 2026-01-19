@@ -8,6 +8,7 @@
  * {
  *   "epics": [
  *     {
+ *       "id": "EPIC-123",
  *       "name": "Some epic name",
  *       "description": "Some epic description",
  *       "status": "IN_PROGRESS",
@@ -27,6 +28,7 @@
  *
  * Inputs (via `data` attribute, JSON):
  * - epics: array of epic objects
+ *   - id: string - epic identifier (e.g., "EPIC-123")
  *   - name: string - epic name (used as card title)
  *   - jira_status: string - epic Jira status (displayed as "Status")
  *   - total_stories: number - total number of stories
@@ -126,6 +128,19 @@ class MissionControlOverview extends HTMLElement {
     // Create progress-card-grid
     const cardGrid = document.createElement('progress-card-grid');
     cardGrid.setAttribute('data', JSON.stringify({ "progress-cards": progressCards }));
+    
+    // Listen for card-click events and re-dispatch with epic data
+    cardGrid.addEventListener('card-click', (e) => {
+      const index = e.detail.index;
+      this.dispatchEvent(new CustomEvent('epic-selected', {
+        detail: { 
+          index: index,
+          epic: epics[index] 
+        },
+        bubbles: true,
+        composed: true
+      }));
+    });
 
     this.innerHTML = '';
     this.appendChild(cardGrid);
