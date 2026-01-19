@@ -1,0 +1,29 @@
+:host { display: block; box-sizing: border-box; width: 100%; }
+.pcg-wrap { width: 100%; }
+.pcg-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, 1fr); /* default: up to 3 columns */
+  align-items: start;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Ensure grid children may shrink to avoid forcing horizontal scrolling */
+.pcg-grid > * {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Ensure child progress-card host does not add extra bottom margin (grid gap handles spacing) */
+progress-card { margin-bottom: 0; min-width: 0; box-sizing: border-box; }
+
+/* Responsive breakpoints: reduce columns as viewport narrows */
+@media (max-width: 1024px) {
+  .pcg-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .pcg-grid { grid-template-columns: repeat(1, 1fr); }
+}
+
+.placeholder { height: 1px; width: 100%; }

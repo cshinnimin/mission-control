@@ -8,6 +8,7 @@
 		<script type="module" src="src/components/presentational/expandable-list/ExpandableList.js"></script>
 		<script type="module" src="src/components/presentational/expandable-row/ExpandableRow.js"></script>
 		<script type="module" src="src/components/presentational/progress-card/ProgressCard.js"></script>
+		<script type="module" src="src/components/presentational/progress-card-grid/ProgressCardGrid.js"></script>
 		<script type="module" src="src/components/presentational/expandable-row-list/ExpandableRowList.js"></script>
 		<style>
 			@font-face {
@@ -142,6 +143,90 @@
 				"progress": 35,
 				"blocked": 15
 			}'></progress-card>
+
+		<h2 style="color: white; margin-top: 32px;">ProgressCardGrid.js Example (13 cards)</h2>
+		<progress-card-grid data='{
+			"progress-cards": [
+				{
+					"title": "Card 1",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-01" }, { "name": "Name", "width": "30%", "contents": "Grid item 1" }, { "name": "Status", "width": "30%", "contents": "Open" }, { "name": "ETA", "width": "30%", "contents": "2026-02-01" } ] },
+					"progress": 5,
+					"blocked": 0
+				},
+				{
+					"title": "Card 2",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-02" }, { "name": "Name", "width": "30%", "contents": "Grid item 2" }, { "name": "Status", "width": "30%", "contents": "In Progress" }, { "name": "ETA", "width": "30%", "contents": "2026-02-05" } ] },
+					"progress": 20,
+					"blocked": 5
+				},
+				{
+					"title": "Card 3",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-03" }, { "name": "Name", "width": "30%", "contents": "Grid item 3" }, { "name": "Status", "width": "30%", "contents": "Blocked" }, { "name": "ETA", "width": "30%", "contents": "2026-02-10" } ] },
+					"progress": 40,
+					"blocked": 30
+				},
+				{
+					"title": "Card 4",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-04" }, { "name": "Name", "width": "30%", "contents": "Grid item 4" }, { "name": "Status", "width": "30%", "contents": "Complete" }, { "name": "ETA", "width": "30%", "contents": "2026-02-15" } ] },
+					"progress": 100,
+					"blocked": 0
+				},
+				{
+					"title": "Card 5",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-05" }, { "name": "Name", "width": "30%", "contents": "Grid item 5" }, { "name": "Status", "width": "30%", "contents": "In Progress" }, { "name": "ETA", "width": "30%", "contents": "2026-03-01" } ] },
+					"progress": 65,
+					"blocked": 10
+				},
+				{
+					"title": "Card 6",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-06" }, { "name": "Name", "width": "30%", "contents": "Grid item 6" }, { "name": "Status", "width": "30%", "contents": "Open" }, { "name": "ETA", "width": "30%", "contents": "2026-03-05" } ] },
+					"progress": 10,
+					"blocked": 0
+				},
+				{
+					"title": "Card 7",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-07" }, { "name": "Name", "width": "30%", "contents": "Grid item 7" }, { "name": "Status", "width": "30%", "contents": "In Progress" }, { "name": "ETA", "width": "30%", "contents": "2026-03-10" } ] },
+					"progress": 30,
+					"blocked": 5
+				},
+				{
+					"title": "Card 8",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-08" }, { "name": "Name", "width": "30%", "contents": "Grid item 8" }, { "name": "Status", "width": "30%", "contents": "Blocked" }, { "name": "ETA", "width": "30%", "contents": "2026-03-15" } ] },
+					"progress": 50,
+					"blocked": 25
+				},
+				{
+					"title": "Card 9",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-09" }, { "name": "Name", "width": "30%", "contents": "Grid item 9" }, { "name": "Status", "width": "30%", "contents": "In Progress" }, { "name": "ETA", "width": "30%", "contents": "2026-03-20" } ] },
+					"progress": 75,
+					"blocked": 5
+				},
+				{
+					"title": "Card 10",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-10" }, { "name": "Name", "width": "30%", "contents": "Grid item 10" }, { "name": "Status", "width": "30%", "contents": "Open" }, { "name": "ETA", "width": "30%", "contents": "2026-04-01" } ] },
+					"progress": 0,
+					"blocked": 0
+				},
+				{
+					"title": "Card 11",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-11" }, { "name": "Name", "width": "30%", "contents": "Grid item 11" }, { "name": "Status", "width": "30%", "contents": "In Progress" }, { "name": "ETA", "width": "30%", "contents": "2026-04-05" } ] },
+					"progress": 45,
+					"blocked": 5
+				},
+				{
+					"title": "Card 12",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-12" }, { "name": "Name", "width": "30%", "contents": "Grid item 12" }, { "name": "Status", "width": "30%", "contents": "Complete" }, { "name": "ETA", "width": "30%", "contents": "2026-04-10" } ] },
+					"progress": 100,
+					"blocked": 0
+				},
+				{
+					"title": "Card 13",
+					"data-row": { "options": { "show_column_names": true, "border-color": "transparent" }, "columns": [ { "name": "ID", "width": "10%", "contents": "G-13" }, { "name": "Name", "width": "30%", "contents": "Grid item 13" }, { "name": "Status", "width": "30%", "contents": "In Progress" }, { "name": "ETA", "width": "30%", "contents": "2026-04-15" } ] },
+					"progress": 62,
+					"blocked": 2
+				}
+			]
+		}'></progress-card-grid>
 
 		<h2 style="color: white; margin-top: 32px;">ExpandableRowList.js Example (5 children)</h2>
 		<expandable-row-list data='[
