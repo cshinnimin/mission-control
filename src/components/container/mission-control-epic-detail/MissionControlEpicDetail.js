@@ -222,40 +222,21 @@ class MissionControlEpicDetail extends HTMLElement {
 
       // Build expandable-list for tasks
       const tasks = Array.isArray(story.tasks) ? story.tasks : [];
-      const taskRows = tasks.map(task => ({
-        columns: [
-          {
-            name: "ID",
-            width: "10%",
-            contents: task.id || ''
-          },
-          {
-            name: "Name",
-            width: "30%",
-            contents: task.name || ''
-          },
-          {
-            name: "Description",
-            width: "40%",
-            contents: task.description || ''
-          },
-          {
-            name: "Status",
-            width: "10%",
-            contents: task.status || ''
-          },
-          {
-            name: "Points",
-            width: "10%",
-            contents: String(task.points || 0)
-          }
-        ]
-      }));
+      const taskRowData = tasks.map(task => [
+        task.id || '',
+        task.name || '',
+        task.description || '',
+        task.status || '',
+        String(task.points || 0)
+      ]);
+      
+      const columnWidths = ['10%', '30%', '40%', '10%', '10%'];
 
       return {
         "data-row": storyDataRow,
         "expandable-list": {
-          rows: taskRows
+          "column-widths": columnWidths,
+          "row-data": taskRowData
         },
         options: {
           "border-color": "black",

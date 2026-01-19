@@ -127,6 +127,7 @@
             const isBlocked = statusIndex === 2;
 
             tasks.push({
+              id: `TASK-${(epicIndex + 1).toString().padStart(3, '0')}-${(s + 1).toString().padStart(2, '0')}-${(t + 1).toString().padStart(2, '0')}`,
               name: `Task ${s + 1}.${t + 1}: ${['Implement', 'Design', 'Test', 'Document', 'Review'][t % 5]} feature`,
               description: `Detailed description for task ${t + 1} in story ${s + 1}`,
               points: points,
@@ -153,6 +154,7 @@
                                     storyTasksBlocked > 0 ? 2 : 0;
 
           stories.push({
+            id: `STORY-${(epicIndex + 1).toString().padStart(3, '0')}-${(s + 1).toString().padStart(2, '0')}`,
             name: `Story ${s + 1}: ${['Build', 'Create', 'Develop', 'Enhance', 'Implement', 'Deploy'][s % 6]} ${epicName} component`,
             description: `User story description for story ${s + 1} of ${epicName}`,
             status: statusCodes[storyStatusIndex],
@@ -186,6 +188,7 @@
                                  epicStoriesBlocked > 0 ? 2 : 0;
 
         return {
+          id: `EPIC-${(epicIndex + 1).toString().padStart(3, '0')}`,
           name: epicName,
           description: `Epic description for ${epicName}. This epic contains multiple user stories and tasks to deliver this feature.`,
           status: statusCodes[epicStatusIndex],

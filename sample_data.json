@@ -1,7 +1,7 @@
 {
   "epics": [
     {
-      "id": "epic-1",
+      "id": "EPIC-001",
       "name": "Some epic name",
       "description": "Some epic description",
       "status": "IN_PROGRESS",
@@ -16,8 +16,8 @@
       "points_blocked": 5,
       "stories": [
         {
-
-          "id": "story-1",
+          "id": "STORY-001-01",
+          "name": "Some story name",
           "description": "Some story description",
           "status": "IN_PROGRESS",
           "jira_status": "In Progress",
@@ -31,7 +31,7 @@
           "points_blocked": 1,
           "tasks": [
             {
-              "id": "task-1",
+              "id": "TASK-001-01-01",
               "name": "Some task name",
               "description": "Some task description",
               "points": 3,
