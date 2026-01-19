@@ -54,16 +54,99 @@
       display: block;
       width: 100%;
     }
+    
+    /* Loading screen styles */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+    
+    #loadingScreen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .loading-pill {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border: 2px solid #0f3460;
+      border-radius: 25px;
+      padding: 16px 32px;
+      box-shadow: 0 0 20px rgba(15, 52, 96, 0.5),
+                  inset 0 0 20px rgba(255, 255, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .loading-pill::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    
+    .loading-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 18px;
+      color: #00d4ff;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 3px solid #00d4ff;
+      width: 0;
+      animation: typing 1.5s steps(30, end) forwards,
+                 blink 0.75s step-end infinite;
+    }
+    
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    
+    @keyframes blink {
+      from, to { border-color: transparent; }
+      50% { border-color: #00d4ff; }
+    }
+    
+    .loading-text.done {
+      border-right: none;
+      animation: none;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <!-- Loading screen -->
+  <div id="loadingScreen">
+    <div class="loading-pill">
+      <div class="loading-text" id="loadingText">Awaiting Jira uplink....</div>
+    </div>
+  </div>
+  
+  <div class="wrap" style="display: none;" id="mainContent">
     <mission-control id="missionControl"></mission-control>
   </div>
 
   <script type="module">
     import './src/components/container/mission-control/MissionControl.js';
-
+    
     // Generate sample data with 10 epics
     function generateSampleData() {
       const statuses = ['Not Started', 'In Progress', 'Blocked', 'Complete'];
@@ -211,10 +294,32 @@
       };
     }
 
-    // Initialize the component with sample data
-    const missionControl = document.getElementById('missionControl');
-    const sampleData = generateSampleData();
-    missionControl.setAttribute('data', JSON.stringify(sampleData));
+    // Loading screen animation and initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      const loadingScreen = document.getElementById('loadingScreen');
+      const loadingText = document.getElementById('loadingText');
+      const mainContent = document.getElementById('mainContent');
+      const missionControl = document.getElementById('missionControl');
+      
+      // After typing completes (1.5s), wait 4.5s more, then show main content
+      setTimeout(() => {
+        loadingText.classList.add('done'); // Stop cursor blinking
+      }, 1500);
+      
+      setTimeout(() => {
+        loadingScreen.classList.add('fade-out');
+        mainContent.style.display = 'block';
+        
+        // Initialize mission control data after component is visible
+        const sampleData = generateSampleData();
+        missionControl.setAttribute('data', JSON.stringify(sampleData));
+        
+        // Remove loading screen from DOM after fade completes
+        setTimeout(() => {
+          loadingScreen.remove();
+        }, 500);
+      }, 6000);
+    });
   </script>
 </body>
 </html>
