@@ -139,6 +139,7 @@ class MissionControlEpicDetail extends HTMLElement {
     const blocked = epic.total_points > 0
       ? (epic.points_blocked / epic.total_points) * 100
       : 0;
+    const percentComplete = Math.round(progress);
 
     const progressCardData = {
       title: epic.name,
@@ -153,23 +154,38 @@ class MissionControlEpicDetail extends HTMLElement {
         columns: [
           {
             name: "Status",
-            width: "45%",
+            width: "20%",
             contents: epic.jira_status || epic.status
           },
           {
             name: "Stories",
-            width: "20%",
+            width: "12%",
             contents: String(epic.total_stories || 0)
           },
           {
             name: "Completed",
-            width: "20%",
+            width: "12%",
             contents: String(epic.stories_complete || 0)
           },
           {
             name: "Blocked",
-            width: "15%",
+            width: "12%",
             contents: String(epic.stories_blocked || 0)
+          },
+          {
+            name: "Total Points",
+            width: "14%",
+            contents: String(epic.total_points || 0)
+          },
+          {
+            name: "Completed Points",
+            width: "16%",
+            contents: String(epic.points_complete || 0)
+          },
+          {
+            name: "% Complete",
+            width: "14%",
+            contents: `${percentComplete}%`
           }
         ]
       }
