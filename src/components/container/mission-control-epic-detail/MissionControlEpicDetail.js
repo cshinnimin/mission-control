@@ -107,6 +107,7 @@ class MissionControlEpicDetail extends HTMLElement {
     }
 
     const container = document.createElement('div');
+    container.style.boxSizing = 'border-box';
     container.style.width = '100%';
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
