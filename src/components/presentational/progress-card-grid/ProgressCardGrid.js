@@ -35,6 +35,17 @@ class ProgressCardGrid extends HTMLElement {
     this._ensureCss().then(() => this.render());
   }
 
+  disconnectedCallback() {
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+      this._resizeObserver = null;
+    }
+    if (this._resizeFallback) {
+      window.removeEventListener('resize', this._resizeFallback);
+      this._resizeFallback = null;
+    }
+  }
+
   async _ensureCss() {
     if (this._cssLoaded) return;
     try {
@@ -84,7 +95,46 @@ class ProgressCardGrid extends HTMLElement {
         if (ph && ph.parentNode) ph.parentNode.replaceChild(el, ph);
         else grid.appendChild(el);
       });
+      // After grid is populated, ensure we have a container-width watcher
+      this._ensureContainerWatcher();
     });
+  }
+
+  _ensureContainerWatcher() {
+    const wrap = this.querySelector('.pcg-wrap');
+    if (!wrap) return;
+
+    // Always install a container-width watcher that toggles size classes.
+    // This ensures the grid responds to the actual container width even if
+    // container queries are supported (they'll act as a progressive enhancement).
+
+    // Setup ResizeObserver to add size classes based on the wrap's inline size.
+    if (this._resizeObserver) this._resizeObserver.disconnect();
+
+    const applySizeClass = (width) => {
+      wrap.classList.remove('pcg-size-1', 'pcg-size-2', 'pcg-size-3');
+      if (width <= 600) wrap.classList.add('pcg-size-1');
+      else if (width <= 1024) wrap.classList.add('pcg-size-2');
+      else wrap.classList.add('pcg-size-3');
+    };
+
+    try {
+      this._resizeObserver = new ResizeObserver(entries => {
+        if (!entries || !entries.length) return;
+        const cr = entries[0].contentRect;
+        applySizeClass(cr.width);
+      });
+      this._resizeObserver.observe(wrap);
+      // Apply immediately
+      applySizeClass(wrap.getBoundingClientRect().width);
+    } catch (e) {
+      // ResizeObserver not available; fallback to window resize listener
+      const onResize = () => applySizeClass(wrap.getBoundingClientRect().width);
+      window.addEventListener('resize', onResize);
+      // store so we could remove later if needed
+      this._resizeFallback = onResize;
+      applySizeClass(wrap.getBoundingClientRect().width);
+    }
   }
 }
 

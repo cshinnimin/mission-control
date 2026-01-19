@@ -1,5 +1,19 @@
 :host { display: block; box-sizing: border-box; width: 100%; }
-.pcg-wrap { width: 100%; }
+.pcg-wrap { width: 100%; container-type: inline-size; container-name: pcg; }
+
+/* Container query: respond to the *container's* inline size (preferred)
+   Fallback media queries remain for older browsers that don't support
+   container queries. */
+
+@container pcg (max-width: 1024px) {
+  .pcg-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@container pcg (max-width: 600px) {
+  .pcg-grid { grid-template-columns: repeat(1, 1fr); }
+}
+.pcg-wrap.pcg-size-2 .pcg-grid { grid-template-columns: repeat(2, 1fr); }
+.pcg-wrap.pcg-size-1 .pcg-grid { grid-template-columns: repeat(1, 1fr); }
 .pcg-grid {
   display: grid;
   gap: 12px;
@@ -18,12 +32,7 @@
 /* Ensure child progress-card host does not add extra bottom margin (grid gap handles spacing) */
 progress-card { margin-bottom: 0; min-width: 0; box-sizing: border-box; }
 
-/* Responsive breakpoints: reduce columns as viewport narrows */
-@media (max-width: 1024px) {
-  .pcg-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 480px) {
-  .pcg-grid { grid-template-columns: repeat(1, 1fr); }
-}
+/* No viewport media queries: layout is driven by container queries or
+   by the ResizeObserver polyfill which toggles `.pcg-size-*` classes. */
 
 .placeholder { height: 1px; width: 100%; }
