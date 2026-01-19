@@ -12,6 +12,7 @@
       "total_points": 39,
       "points_complete": 13,
       "points_in_progress": 11,
+      "points_blocked": 5,
       "stories": [
         {
           "name": "Some story name",
@@ -25,10 +26,11 @@
           "total_points": 7,
           "points_complete": 2,
           "points_in_progress": 3,
+          "points_blocked": 1,
           "tasks": [
             {
-              "name": "Some story name",
-              "description": "Some story description",
+              "name": "Some task name",
+              "description": "Some task description",
               "points": 3,
               "status": "IN_PROGRESS",
               "jira_status": "In Progress",
