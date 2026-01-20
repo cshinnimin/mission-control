@@ -5,32 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mission Control</title>
   <link rel="stylesheet" href="/src/server/css/main.css">
-</head>
-<body>
-  <div class="wrap">
-    <mission-control id="missionControl"></mission-control>
-  </div>
-
+  <link rel="stylesheet" href="/src/server/css/uplink.css">
   <script type="module">
     import '/src/components/container/mission-control/MissionControl.js';
-    
-    // Load mission control data from JSON file
-    window.addEventListener('DOMContentLoaded', async () => {
-      const missionControl = document.getElementById('missionControl');
-      
-      try {
-        const response = await fetch('/data/input.json');
-        if (!response.ok) {
-          throw new Error(`Failed to load data: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        missionControl.setAttribute('data', JSON.stringify(data));
-      } catch (error) {
-        console.error('Error loading mission control data:', error);
-        missionControl.innerHTML = '<p style="color: red;">Failed to load mission control data. Please check the console for details.</p>';
-      }
-    });
   </script>
+  <script type="module" src="/src/server/js/uplink.js"></script>
+</head>
+<body>
+  <!-- Loading screen -->
+  <div id="loadingScreen">
+    <div class="loading-pill">
+      <div class="loading-text" id="loadingText">Awaiting Jira uplink....</div>
+    </div>
+  </div>
+  
+  <div class="wrap" style="display: none;" id="mainContent">
+    <mission-control id="missionControl"></mission-control>
+  </div>
 </body>
 </html>
