@@ -94,6 +94,7 @@ class MissionControlOverview extends HTMLElement {
         title: epic.name,
         progress: progress,
         blocked: blocked,
+        projected_completion: epic.projected_completion,
         "data-row": {
           options: {
             show_column_names: true,

@@ -7,9 +7,10 @@
  * Expected `data` JSON:
  * {
  *   "title": "Card Title 1",
- *   "data-row": { ... },    // same schema as `data-row` component
- *   "progress": 35,         // percent (0-100)
- *   "blocked": 15           // percent (0-100)
+ *   "data-row": { ... },           // same schema as `data-row` component
+ *   "progress": 35,                // percent (0-100)
+ *   "blocked": 15,                 // percent (0-100)
+ *   "projected_completion": "2026-10-05"  // optional: YYYY-MM-DD format
  * }
  *
  * Layout:
@@ -18,6 +19,8 @@
  * - A rounded progress track beneath the data-row. The left side shows
  *   completed progress in dark green, the right side shows blocked portion
  *   in dark red. The track fills the horizontal space of its container.
+ * - If projected_completion is provided, displays "Projected Completion: <formatted date>"
+ *   below the progress bar, where the date is formatted as "Friday, October 5".
  *
  * Note: The nested `data-row` payload accepts the `options.background-color`
  * property (in addition to `options.border-color`) to request a subtle
@@ -75,6 +78,8 @@ class ProgressCard extends HTMLElement {
     const dataRow = parsed['data-row'] || {};
     const progress = Math.max(0, Math.min(100, Number(parsed.progress) || 0));
     const blocked = Math.max(0, Math.min(100, Number(parsed.blocked) || 0));
+    const projectedCompletion = parsed.projected_completion || '';
+    const formattedDate = this._formatDate(projectedCompletion);
 
     const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
 
@@ -93,8 +98,22 @@ class ProgressCard extends HTMLElement {
             <div class="blocked-bar" style="width: ${blocked}%;"></div>
           </div>
         </div>
+        ${formattedDate ? `<div class="projected-completion">Projected Completion: ${this._escapeHtml(formattedDate)}</div>` : ''}
       </div>
     `;
+  }
+
+  _formatDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr + 'T00:00:00');
+      if (isNaN(date.getTime())) return '';
+      
+      const options = { weekday: 'long', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    } catch (e) {
+      return '';
+    }
   }
 
   _escapeHtml(str) {

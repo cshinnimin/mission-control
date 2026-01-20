@@ -282,6 +282,12 @@
                                  epicStoriesInProgress > 0 ? 1 : 
                                  epicStoriesBlocked > 0 ? 2 : 0;
 
+        // Generate projected completion dates (2-6 months from now)
+        const monthsToAdd = 2 + epicIndex * 0.4; // Stagger dates across epics
+        const projectedDate = new Date();
+        projectedDate.setMonth(projectedDate.getMonth() + Math.ceil(monthsToAdd));
+        const projectedCompletion = projectedDate.toISOString().split('T')[0];
+
         return {
           id: `EPIC-${(epicIndex + 1).toString().padStart(3, '0')}`,
           name: epicName,
@@ -297,6 +303,7 @@
           points_complete: epicPointsComplete,
           points_in_progress: epicPointsInProgress,
           points_blocked: epicPointsBlocked,
+          projected_completion: projectedCompletion,
           stories: stories
         };
       });
