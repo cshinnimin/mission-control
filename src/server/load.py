@@ -31,7 +31,7 @@ class MissionControlHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests, serving index.html for root path."""
         if self.path == '/':
-            self.path = '/src/html/index.html'
+            self.path = '/src/server/html/index.html'
         return super().do_GET()
 
 
