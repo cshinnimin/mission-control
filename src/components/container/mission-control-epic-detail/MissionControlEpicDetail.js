@@ -56,7 +56,7 @@
  * - Each story row contains tasks in an expandable-list
  * - Story background color depends on status:
  *   - IN_PROGRESS: darkgreen
- *   - COMPLETE: rgba(128, 0, 128, 0.12)
+ *   - COMPLETE: darkblue
  *   - BLOCKED: darkred
  */
 import '../../presentational/progress-card/ProgressCard.js';
@@ -65,7 +65,7 @@ import '../../presentational/expandable-row-list/ExpandableRowList.js';
 // Status color constants for easier maintenance
 const STORY_STATUS_COLORS = {
   IN_PROGRESS: 'darkgreen',
-  COMPLETE: 'rgba(128, 0, 128, 0.12)',
+  COMPLETE: 'darkblue',
   BLOCKED: 'darkred'
 };
 
