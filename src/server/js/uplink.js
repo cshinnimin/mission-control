@@ -48,7 +48,7 @@ function loadMissionControl(data) {
 /**
  * Hide loading screen and show main content
  */
-function hideLoadingScreen() {
+function hideLoadingScreen(callback) {
   const loadingScreen = document.getElementById('loadingScreen');
   const loadingText = document.getElementById('loadingText');
   const mainContent = document.getElementById('mainContent');
@@ -64,6 +64,11 @@ function hideLoadingScreen() {
   setTimeout(() => {
     loadingScreen.classList.add('fade-out');
     mainContent.style.display = 'block';
+    
+    // Wait a moment for components to be visible and initialized before loading data
+    setTimeout(() => {
+      if (callback) callback();
+    }, 100);
     
     // Remove loading screen from DOM after fade completes
     setTimeout(() => {
@@ -85,9 +90,10 @@ async function startPolling() {
       checkTimer = null;
     }
     
-    // Load the data and hide loading screen
-    loadMissionControl(result.data);
-    hideLoadingScreen();
+    // Hide loading screen first, then load data after components are visible
+    hideLoadingScreen(() => {
+      loadMissionControl(result.data);
+    });
   } else if (!checkTimer) {
     // Start interval to check every 3 seconds
     checkTimer = setInterval(async () => {
@@ -97,9 +103,10 @@ async function startPolling() {
         clearInterval(checkTimer);
         checkTimer = null;
         
-        // Load the data and hide loading screen
-        loadMissionControl(checkResult.data);
-        hideLoadingScreen();
+        // Hide loading screen first, then load data after components are visible
+        hideLoadingScreen(() => {
+          loadMissionControl(checkResult.data);
+        });
       }
     }, CHECK_INTERVAL);
   }
