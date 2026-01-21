@@ -1,4 +1,5 @@
 {
+  "title": "Development Team Mission Control",
   "epics": [
     {
       "id":  "EPIC-001",
@@ -15,6 +16,7 @@
       "points_complete":  21,
       "points_in_progress": 26,
       "points_blocked": 0,
+      "projected_completion": "2027-09-15",
       "stories": [
         {
           "id": "STORY-001-01",
@@ -263,6 +265,7 @@
       "points_complete":  9,
       "points_in_progress": 35,
       "points_blocked":  14,
+      "projected_completion": "2027-09-16",
       "stories": [
         {
           "id": "STORY-002-01",
@@ -591,6 +594,7 @@
       "points_complete":  0,
       "points_in_progress": 52,
       "points_blocked": 0,
+      "projected_completion": "2027-09-17",
       "stories": [
         {
           "id": "STORY-003-01",
@@ -875,6 +879,7 @@
       "points_complete":  11,
       "points_in_progress": 27,
       "points_blocked": 0,
+      "projected_completion": "2027-09-15",
       "stories": [
         {
           "id": "STORY-004-01",
@@ -1088,6 +1093,7 @@
       "points_complete":  0,
       "points_in_progress": 18,
       "points_blocked":  27,
+      "projected_completion": "2027-09-15",
       "stories":  [
         {
           "id": "STORY-005-01",
@@ -1372,6 +1378,7 @@
       "points_complete":  0,
       "points_in_progress": 9,
       "points_blocked":  26,
+      "projected_completion": "2027-09-17",
       "stories":  [
         {
           "id": "STORY-006-01",
@@ -1594,6 +1601,7 @@
       "points_complete":  8,
       "points_in_progress": 21,
       "points_blocked":  12,
+      "projected_completion": "2027-09-14",
       "stories": [
         {
           "id": "STORY-007-01",
@@ -1851,6 +1859,7 @@
       "points_complete":  9,
       "points_in_progress": 23,
       "points_blocked": 0,
+      "projected_completion": "2027-09-17",
       "stories": [
         {
           "id": "STORY-008-01",
@@ -2055,6 +2064,7 @@
       "points_complete":  0,
       "points_in_progress": 32,
       "points_blocked":  30,
+      "projected_completion": "2027-09-16",
       "stories": [
         {
           "id": "STORY-009-01",
@@ -2401,6 +2411,7 @@
       "points_complete":  10,
       "points_in_progress": 20,
       "points_blocked":  14,
+      "projected_completion": "2027-09-22",
       "stories":  [
         {
           "id": "STORY-010-01",

@@ -41,7 +41,12 @@ async function checkForData() {
 function loadMissionControl(data) {
   const missionControl = document.getElementById('missionControl');
   if (missionControl) {
-    missionControl.setAttribute('data', JSON.stringify(data));
+    // Map input.json structure (title) to MissionControl expected structure (name)
+    const transformedData = {
+      name: data.title || data.name, // Support both 'title' and 'name' properties
+      epics: data.epics
+    };
+    missionControl.setAttribute('data', JSON.stringify(transformedData));
   }
 }
 
