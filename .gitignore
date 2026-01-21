@@ -4,3 +4,6 @@
 # macOS system files
 .DS_Store
 **/.DS_Store
+
+# Data files
+data/input.json
