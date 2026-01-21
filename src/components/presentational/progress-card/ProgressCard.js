@@ -98,7 +98,7 @@ class ProgressCard extends HTMLElement {
             <div class="blocked-bar" style="width: ${blocked}%;"></div>
           </div>
         </div>
-        ${formattedDate ? `<div class="projected-completion">Projected Completion: ${this._escapeHtml(formattedDate)}</div>` : ''}
+        ${formattedDate ? `<div class="projected-completion">Completion: ${this._escapeHtml(formattedDate)}</div>` : ''}
       </div>
     `;
   }
