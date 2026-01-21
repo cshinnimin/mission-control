@@ -268,7 +268,7 @@ class MissionControlEpicDetail extends HTMLElement {
           "row-data": taskRowData,
           "row-background-colors": taskRowColors
         },
-        options: {
+        "options": {
           "border-color": "black",
           "background-color": "transparent"
         }

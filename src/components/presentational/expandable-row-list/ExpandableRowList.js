@@ -67,8 +67,10 @@ class ExpandableRowList extends HTMLElement {
       // Ensure each child expandable-row gets a transparent border and
       // transparent background by default
       const payload = Object.assign({}, r || {}, { options: Object.assign({}, (r && r.options) || {}, { 'border-color': 'transparent', 'background-color': 'transparent' }) });
-      // stringify each child payload safely for embedding in attribute
-      const json = JSON.stringify(payload).replace(/</g, '\u003c');
+      // Stringify payload and escape characters for safe HTML attribute embedding:
+      // - Replace < with \u003c to prevent script injection
+      // - Replace ' with &#39; to prevent breaking the single-quoted attribute
+      const json = JSON.stringify(payload).replace(/</g, '\u003c').replace(/'/g, '&#39;');
       return `<expandable-row data='${json}'></expandable-row>`;
     }).join('\n');
 
