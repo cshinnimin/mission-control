@@ -83,11 +83,18 @@ class ProgressCard extends HTMLElement {
     const formattedDate = this._formatDate(projectedCompletion);
 
     const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
+    const id = parsed.id || '';
+    const dataIdAttr = id ? ` data-id="${this._escapeHtml(id)}"` : '';
+    
+    // Load capacity from localStorage if we have an id
+    if (id) {
+      this._capacity = this._loadCapacity(id);
+    }
 
     // compose inner HTML with a left-side label and bordered progress track
     this.shadowRoot.innerHTML = `
       ${style}
-      <div class="card">
+      <div class="card"${dataIdAttr}>
         <div class="title">${this._escapeHtml(title)}</div>
         <div class="data-row-wrap">
           <data-row data='${this._escapeHtml(JSON.stringify(dataRow))}'></data-row>
@@ -125,6 +132,7 @@ class ProgressCard extends HTMLElement {
         e.stopPropagation();
         this._capacity = Math.max(0, this._capacity - 0.25);
         this._updateCapacityDisplay();
+        this._saveCapacity();
       });
     }
 
@@ -133,6 +141,7 @@ class ProgressCard extends HTMLElement {
         e.stopPropagation();
         this._capacity += 0.25;
         this._updateCapacityDisplay();
+        this._saveCapacity();
       });
     }
   }
@@ -141,6 +150,40 @@ class ProgressCard extends HTMLElement {
     const valueEl = this.shadowRoot.querySelector('.capacity-value');
     if (valueEl) {
       valueEl.textContent = this._capacity.toFixed(2);
+    }
+  }
+
+  _loadCapacity(id) {
+    try {
+      const key = `progress-card-capacity-${id}`;
+      const stored = localStorage.getItem(key);
+      if (stored !== null) {
+        const parsed = parseFloat(stored);
+        if (!isNaN(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      // localStorage might not be available
+      console.warn('Failed to load capacity from localStorage:', e);
+    }
+    return 1.00; // default capacity
+  }
+
+  _saveCapacity() {
+    try {
+      let raw = this.getAttribute('data') || '{}';
+      let parsed;
+      try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
+      
+      const id = parsed.id || '';
+      if (id) {
+        const key = `progress-card-capacity-${id}`;
+        localStorage.setItem(key, this._capacity.toString());
+      }
+    } catch (e) {
+      // localStorage might not be available
+      console.warn('Failed to save capacity to localStorage:', e);
     }
   }
 

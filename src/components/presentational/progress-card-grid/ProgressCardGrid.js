@@ -90,6 +90,9 @@ class ProgressCardGrid extends HTMLElement {
         const el = document.createElement('progress-card');
         const payload = JSON.stringify(card).replace(/</g, '\u003c');
         el.setAttribute('data', payload);
+        if (card.id) {
+          el.setAttribute('data-id', card.id);
+        }
         el.setAttribute('role', 'listitem');
         el.style.cursor = 'pointer';
         

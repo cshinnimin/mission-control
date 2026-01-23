@@ -144,6 +144,7 @@ class MissionControlEpicDetail extends HTMLElement {
     const percentComplete = Math.round(progress);
 
     const progressCardData = {
+      id: epic.id,
       title: epic.name,
       progress: progress,
       blocked: blocked,
@@ -201,6 +202,9 @@ class MissionControlEpicDetail extends HTMLElement {
 
     const progressCard = document.createElement('progress-card');
     progressCard.setAttribute('data', JSON.stringify(progressCardData));
+    if (epic.id) {
+      progressCard.setAttribute('data-id', epic.id);
+    }
     container.appendChild(progressCard);
 
     // Create expandable-row-list for stories

@@ -181,6 +181,7 @@ class MissionControlOverview extends HTMLElement {
         : 0;
 
       return {
+        id: epic.id,
         title: epic.name,
         progress: progress,
         blocked: blocked,
