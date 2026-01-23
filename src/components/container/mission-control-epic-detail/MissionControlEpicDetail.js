@@ -21,6 +21,7 @@
  *     "points_complete": 13,
  *     "points_in_progress": 11,
  *     "points_blocked": 2,
+ *     "projected_completion": "2026-02-15",
  *     "stories": [
  *       {
  *         "id": "STORY-456",
