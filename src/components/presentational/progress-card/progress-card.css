@@ -88,10 +88,82 @@
   pointer-events: none;
   opacity: 0.6;
 }
+
+/* Separator line between progress bar and capacity section */
+.separator {
+  width: 100%;
+  height: 1px;
+  background: #d1d5db;
+  margin: 10px 0;
+}
+
+/* Capacity control row */
+.capacity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.capacity-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0b1220;
+  white-space: nowrap;
+  flex: 1;
+  text-align: right;
+}
+
+.capacity-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.capacity-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.capacity-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 3px 6px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.capacity-btn:active {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 0 1px 2px rgba(59, 130, 246, 0.3);
+  transform: translateY(0);
+}
+
+.capacity-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0b1220;
+  min-width: 40px;
+  text-align: center;
+}
+
 .meta { margin-top: 8px; font-size: 12px; color: #334155; }
 .projected-completion {
   margin-top: 8px;
   font-size: 13px;
   font-weight: 600;
   color: #0b1220;
+  text-align: right;
 }

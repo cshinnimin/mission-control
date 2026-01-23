@@ -35,6 +35,7 @@ class ProgressCard extends HTMLElement {
     this._css = null;
     this._cssLoaded = false;
     this._pendingDataChange = false;
+    this._capacity = 1.00;
   }
 
   static get observedAttributes() { return ['data']; }
@@ -98,9 +99,49 @@ class ProgressCard extends HTMLElement {
             <div class="blocked-bar" style="width: ${blocked}%;"></div>
           </div>
         </div>
+        <div class="separator"></div>
+        <div class="capacity-row">
+          <div class="capacity-label">Capacity:</div>
+          <div class="capacity-controls">
+            <button class="capacity-btn decrease" aria-label="Decrease capacity">−</button>
+            <span class="capacity-value">${this._capacity.toFixed(2)}</span>
+            <button class="capacity-btn increase" aria-label="Increase capacity">+</button>
+          </div>
+        </div>
         ${formattedDate ? `<div class="projected-completion">Completion: ${this._escapeHtml(formattedDate)}</div>` : ''}
       </div>
     `;
+
+    // Attach event listeners to capacity buttons
+    this._attachCapacityListeners();
+  }
+
+  _attachCapacityListeners() {
+    const decreaseBtn = this.shadowRoot.querySelector('.capacity-btn.decrease');
+    const increaseBtn = this.shadowRoot.querySelector('.capacity-btn.increase');
+
+    if (decreaseBtn) {
+      decreaseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._capacity = Math.max(0, this._capacity - 0.25);
+        this._updateCapacityDisplay();
+      });
+    }
+
+    if (increaseBtn) {
+      increaseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._capacity += 0.25;
+        this._updateCapacityDisplay();
+      });
+    }
+  }
+
+  _updateCapacityDisplay() {
+    const valueEl = this.shadowRoot.querySelector('.capacity-value');
+    if (valueEl) {
+      valueEl.textContent = this._capacity.toFixed(2);
+    }
   }
 
   _formatDate(dateStr) {
