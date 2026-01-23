@@ -167,7 +167,11 @@ class MissionControl extends HTMLElement {
     epicDetail.style.display = this._state.currentView === 'epic-detail' ? 'block' : 'none';
     
     if (this._state.selectedEpic) {
-      epicDetail.setAttribute('data', JSON.stringify({ epic: this._state.selectedEpic }));
+      epicDetail.setAttribute('data', JSON.stringify({ 
+        epic: this._state.selectedEpic,
+        velocity,
+        holidays 
+      }));
     }
     
     // Listen for back navigation from detail view

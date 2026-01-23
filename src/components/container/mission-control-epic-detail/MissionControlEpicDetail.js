@@ -102,7 +102,7 @@ class MissionControlEpicDetail extends HTMLElement {
       return;
     }
 
-    const { epic } = parsedData;
+    const { epic, velocity, holidays = [] } = parsedData;
     if (!epic) {
       this.innerHTML = '<div>Epic Detail - No epic data provided</div>';
       return;
@@ -148,7 +148,9 @@ class MissionControlEpicDetail extends HTMLElement {
       title: epic.name,
       progress: progress,
       blocked: blocked,
-      projected_completion: epic.projected_completion,
+      remaining_points: epic.total_points - epic.points_complete,
+      velocity: velocity,
+      holidays: holidays,
       "data-row": {
         options: {
           show_column_names: true,

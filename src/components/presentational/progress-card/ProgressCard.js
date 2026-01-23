@@ -79,8 +79,6 @@ class ProgressCard extends HTMLElement {
     const dataRow = parsed['data-row'] || {};
     const progress = Math.max(0, Math.min(100, Number(parsed.progress) || 0));
     const blocked = Math.max(0, Math.min(100, Number(parsed.blocked) || 0));
-    const projectedCompletion = parsed.projected_completion || '';
-    const formattedDate = this._formatDate(projectedCompletion);
 
     const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
     const id = parsed.id || '';
@@ -90,6 +88,13 @@ class ProgressCard extends HTMLElement {
     if (id) {
       this._capacity = this._loadCapacity(id);
     }
+
+    // Calculate projected completion if we have the necessary data
+    const remainingPoints = parsed.remaining_points;
+    const velocity = parsed.velocity;
+    const holidays = parsed.holidays || [];
+    const projectedCompletion = this._calculateProjectedCompletion(remainingPoints, velocity, holidays, this._capacity);
+    const formattedDate = this._formatDate(projectedCompletion);
 
     // compose inner HTML with a left-side label and bordered progress track
     this.shadowRoot.innerHTML = `
@@ -133,6 +138,7 @@ class ProgressCard extends HTMLElement {
         this._capacity = Math.max(0, this._capacity - 0.25);
         this._updateCapacityDisplay();
         this._saveCapacity();
+        this._updateProjectedCompletion();
       });
     }
 
@@ -142,6 +148,7 @@ class ProgressCard extends HTMLElement {
         this._capacity += 0.25;
         this._updateCapacityDisplay();
         this._saveCapacity();
+        this._updateProjectedCompletion();
       });
     }
   }
@@ -151,6 +158,105 @@ class ProgressCard extends HTMLElement {
     if (valueEl) {
       valueEl.textContent = this._capacity.toFixed(2);
     }
+  }
+
+  _updateProjectedCompletion() {
+    // Get the current data to access calculation parameters
+    let raw = this.getAttribute('data') || '{}';
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (e) { return; }
+
+    const remainingPoints = parsed.remaining_points;
+    const velocity = parsed.velocity;
+    const holidays = parsed.holidays || [];
+
+    // Recalculate projected completion
+    const projectedCompletion = this._calculateProjectedCompletion(remainingPoints, velocity, holidays, this._capacity);
+    const formattedDate = this._formatDate(projectedCompletion);
+
+    // Update only the projected completion element
+    const completionEl = this.shadowRoot.querySelector('.projected-completion');
+    if (completionEl) {
+      if (formattedDate) {
+        completionEl.textContent = `Completion: ${formattedDate}`;
+        completionEl.style.display = '';
+      } else {
+        completionEl.style.display = 'none';
+      }
+    }
+  }
+
+  _calculateProjectedCompletion(remainingPoints, velocity, holidays = [], capacity = 1.0) {
+    // If capacity is 0, return empty (will show as "Unknown")
+    if (capacity === 0) {
+      return '';
+    }
+
+    // If no velocity provided, don't calculate completion
+    if (!velocity || velocity <= 0) {
+      return '';
+    }
+
+    // If no remaining points, return empty
+    if (remainingPoints <= 0) {
+      return '';
+    }
+
+    // Calculate projected hours needed
+    const projectedHours = remainingPoints * velocity;
+
+    // Convert holidays array to Set of Date objects for faster lookup
+    const holidaySet = new Set(holidays.map(h => {
+      const d = new Date(h + 'T00:00:00');
+      return d.toISOString().split('T')[0];
+    }));
+
+    // Helper function to check if a date is a business day
+    const isBusinessDay = (date) => {
+      const dayOfWeek = date.getDay();
+      // 0 = Sunday, 6 = Saturday
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        return false;
+      }
+      // Check if date is in holidays list
+      const dateStr = date.toISOString().split('T')[0];
+      return !holidaySet.has(dateStr);
+    };
+
+    // Start from NEXT business day from today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let currentDate = new Date(today);
+    currentDate.setDate(currentDate.getDate() + 1); // Start from tomorrow
+    
+    // Find the next business day
+    while (!isBusinessDay(currentDate)) {
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Each business day has 8 working hours, multiplied by capacity
+    const hoursPerDay = 8 * capacity;
+    let remainingHours = projectedHours;
+
+    // Count business days needed
+    while (remainingHours > 0) {
+      if (isBusinessDay(currentDate)) {
+        remainingHours -= hoursPerDay;
+      }
+      if (remainingHours > 0) {
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+
+    // The completion would fall on currentDate, but we need to display the NEXT business day
+    currentDate.setDate(currentDate.getDate() + 1);
+    while (!isBusinessDay(currentDate)) {
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Return in YYYY-MM-DD format
+    return currentDate.toISOString().split('T')[0];
   }
 
   _loadCapacity(id) {

@@ -69,81 +69,6 @@ class MissionControlOverview extends HTMLElement {
     this.render();
   }
 
-  /**
-   * Calculate the projected completion date for an epic based on velocity
-   * @param {number} remainingPoints - The remaining story points (total - complete)
-   * @param {number} velocity - The velocity (points per hour)
-   * @param {string[]} holidays - Array of holiday dates in YYYY-MM-DD format
-   * @returns {string} - Projected completion date in YYYY-MM-DD format, or empty string if velocity is missing
-   */
-  calculateProjectedCompletion(remainingPoints, velocity, holidays = []) {
-    // If no velocity provided, don't calculate completion
-    if (!velocity || velocity <= 0) {
-      return '';
-    }
-
-    // If no remaining points, return empty
-    if (remainingPoints <= 0) {
-      return '';
-    }
-
-    // Calculate projected hours needed
-    const projectedHours = remainingPoints * velocity;
-
-    // Convert holidays array to Set of Date objects for faster lookup
-    const holidaySet = new Set(holidays.map(h => {
-      const d = new Date(h + 'T00:00:00');
-      return d.toISOString().split('T')[0];
-    }));
-
-    // Helper function to check if a date is a business day
-    const isBusinessDay = (date) => {
-      const dayOfWeek = date.getDay();
-      // 0 = Sunday, 6 = Saturday
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
-        return false;
-      }
-      // Check if date is in holidays list
-      const dateStr = date.toISOString().split('T')[0];
-      return !holidaySet.has(dateStr);
-    };
-
-    // Start from NEXT business day from today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let currentDate = new Date(today);
-    currentDate.setDate(currentDate.getDate() + 1); // Start from tomorrow
-    
-    // Find the next business day
-    while (!isBusinessDay(currentDate)) {
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    // Each business day has 8 working hours
-    const hoursPerDay = 8;
-    let remainingHours = projectedHours;
-
-    // Count business days needed
-    while (remainingHours > 0) {
-      if (isBusinessDay(currentDate)) {
-        remainingHours -= hoursPerDay;
-      }
-      if (remainingHours > 0) {
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-    }
-
-    // The completion would fall on currentDate, but we need to display the NEXT business day
-    currentDate.setDate(currentDate.getDate() + 1);
-    while (!isBusinessDay(currentDate)) {
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    // Return in YYYY-MM-DD format
-    return currentDate.toISOString().split('T')[0];
-  }
-
   render() {
     const dataAttr = this.getAttribute('data');
     if (!dataAttr) {
@@ -161,18 +86,8 @@ class MissionControlOverview extends HTMLElement {
 
     const { velocity, holidays = [], epics = [] } = parsedData;
 
-    // Calculate projected_completion for each epic
-    const epicsWithCompletion = epics.map(epic => {
-      const remainingPoints = epic.total_points - epic.points_complete;
-      const projected_completion = this.calculateProjectedCompletion(remainingPoints, velocity, holidays);
-      return {
-        ...epic,
-        projected_completion
-      };
-    });
-
     // Build progress cards data
-    const progressCards = epicsWithCompletion.map(epic => {
+    const progressCards = epics.map(epic => {
       const progress = epic.total_points > 0 
         ? (epic.points_complete / epic.total_points) * 100 
         : 0;
@@ -185,7 +100,9 @@ class MissionControlOverview extends HTMLElement {
         title: epic.name,
         progress: progress,
         blocked: blocked,
-        projected_completion: epic.projected_completion,
+        remaining_points: epic.total_points - epic.points_complete,
+        velocity: velocity,
+        holidays: holidays,
         "data-row": {
           options: {
             show_column_names: true,
@@ -228,7 +145,9 @@ class MissionControlOverview extends HTMLElement {
       this.dispatchEvent(new CustomEvent('epic-selected', {
         detail: { 
           index: index,
-          epic: epicsWithCompletion[index] 
+          epic: epics[index],
+          velocity: velocity,
+          holidays: holidays
         },
         bubbles: true,
         composed: true
