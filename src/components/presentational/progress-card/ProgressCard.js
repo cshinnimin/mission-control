@@ -19,7 +19,7 @@
  * - A rounded progress track beneath the data-row. The left side shows
  *   completed progress in dark green, the right side shows blocked portion
  *   in dark red. The track fills the horizontal space of its container.
- * - If projected_completion is provided, displays "Projected Completion: <formatted date>"
+ * - If projected_completion is provided, displays "Completion: <formatted date>"
  *   below the progress bar, where the date is formatted as "Friday, October 5".
  *
  * Note: The nested `data-row` payload accepts the `options.background-color`

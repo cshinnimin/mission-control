@@ -39,14 +39,26 @@ async function checkForData() {
  * Load mission control with data
  */
 function loadMissionControl(data) {
+  console.log('[Uplink] loadMissionControl called with data:', { 
+    hasTitle: !!data.title,
+    hasVelocity: !!data.velocity, 
+    hasHolidays: !!data.holidays,
+    epicCount: data.epics?.length || 0
+  });
   const missionControl = document.getElementById('missionControl');
   if (missionControl) {
     // Map input.json structure (title) to MissionControl expected structure (name)
     const transformedData = {
       name: data.title || data.name, // Support both 'title' and 'name' properties
+      velocity: data.velocity,
+      holidays: data.holidays || [],
       epics: data.epics
     };
+    console.log('[Uplink] Setting data attribute on mission-control element');
     missionControl.setAttribute('data', JSON.stringify(transformedData));
+    console.log('[Uplink] Data attribute set successfully');
+  } else {
+    console.error('[Uplink] Could not find missionControl element');
   }
 }
 
