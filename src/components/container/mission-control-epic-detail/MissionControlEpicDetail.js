@@ -115,6 +115,8 @@ class MissionControlEpicDetail extends HTMLElement {
     container.style.flexDirection = 'column';
     container.style.gap = '20px';
     container.style.padding = '20px';
+    // Use detail font for better readability
+    container.style.fontFamily = 'var(--detail-font)';
 
     // Create back button
     const backButton = document.createElement('button');
@@ -207,6 +209,8 @@ class MissionControlEpicDetail extends HTMLElement {
     if (epic.id) {
       progressCard.setAttribute('data-id', epic.id);
     }
+    // Keep global font for the ProgressCard
+    progressCard.style.fontFamily = 'var(--global-font)';
     container.appendChild(progressCard);
 
     // Create expandable-row-list for stories

@@ -6,12 +6,17 @@
   font-display: swap;
 }
 
+:root {
+  --global-font: 'Orbitron', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --detail-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
 html, body { margin: 0; }
 
 body {
   margin: 0;
   padding: 40px;
-  font-family: 'Orbitron', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--global-font);
   background-color: #000;
   background-image: url('/assets/images/background.jpg');
   background-repeat: no-repeat;
