@@ -51,6 +51,8 @@
  *   - background-color: string (optional) - CSS color for container background
  *   - detail-rows-have-borders: boolean (default: true) - whether the detail rows (expandable-list) display borders.
  *     This is passed through as `rows-have-borders` to the expandable-list component.
+ *   - show-detail-section-border: boolean (default: false) - whether to show a dotted border around the
+ *     expanded detail section (3 sides: left, right, bottom)
  *
  * Layout:
  * - Rounded container with a top row containing the `data-row` and an expand/collapse button
@@ -113,12 +115,14 @@ class ExpandableRow extends HTMLElement {
     const options = parsed.options || {};
     const borderColor = options['border-color'] || '#777';
     const detailRowsHaveBorders = typeof options['detail-rows-have-borders'] === 'boolean' ? options['detail-rows-have-borders'] : true;
+    const showDetailSectionBorder = typeof options['show-detail-section-border'] === 'boolean' ? options['show-detail-section-border'] : false;
     
     // Pass detail-rows-have-borders to the expandable-list as rows-have-borders
     const listDataWithBorders = Object.assign({}, listData, { 'rows-have-borders': detailRowsHaveBorders });
 
     // Compose inner HTML - include css + structure
     const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
+    const listClass = showDetailSectionBorder ? 'list show-border' : 'list';
     this.shadowRoot.innerHTML = `
       ${style}
       <div class="container" style="border: 2px solid ${this._escapeHtml(borderColor)};">
@@ -132,7 +136,7 @@ class ExpandableRow extends HTMLElement {
             </svg>
           </button>
         </div>
-        <div class="list" style="max-height:0">
+        <div class="${listClass}" style="max-height:0">
           <expandable-list data='${this._escapeHtml(JSON.stringify(listDataWithBorders))}'></expandable-list>
         </div>
       </div>
@@ -164,6 +168,7 @@ class ExpandableRow extends HTMLElement {
         h = Math.ceil(h + 20);
         listEl.style.maxHeight = h + 'px';
         listEl.style.overflow = 'hidden';
+        listEl.classList.add('expanded');
         toggle.setAttribute('aria-expanded', 'true');
         chev.classList.add('open');
         this._expanded = true;
@@ -188,6 +193,7 @@ class ExpandableRow extends HTMLElement {
       const inner = listEl.firstElementChild;
       // collapse visually
       listEl.style.maxHeight = '0';
+      listEl.classList.remove('expanded');
       toggle.setAttribute('aria-expanded', 'false');
       chev.classList.remove('open');
       this._expanded = false;

@@ -50,4 +50,24 @@
 .list {
 	overflow: hidden;
 	transition: max-height .28s ease;
+	transition: max-height .28s ease, border-color .28s ease;
+}
+
+.list.show-border {
+	border-left: 2px dotted transparent;
+	border-right: 2px dotted transparent;
+	border-bottom: 2px dotted transparent;
+	border-bottom-left-radius: 8px;
+	border-bottom-right-radius: 8px;
+	margin-left: 16px;
+	margin-right: 70px;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+.list.show-border.expanded {
+	border-left-color: #999;
+	border-right-color: #999;
+	border-bottom-color: #999;
+	margin-bottom: 10px;
 }

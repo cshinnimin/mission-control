@@ -286,7 +286,8 @@ class MissionControlEpicDetail extends HTMLElement {
         "options": {
           "border-color": "black",
           "background-color": "transparent",
-          "detail-rows-have-borders": false
+          "detail-rows-have-borders": false,
+          "show-detail-section-border": true
         }
       };
     });
