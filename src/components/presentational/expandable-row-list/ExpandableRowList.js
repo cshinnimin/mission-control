@@ -10,7 +10,9 @@
  *
  * Note: This component ensures child `expandable-row` entries receive
  * `options.border-color` and `options.background-color` defaulting to
- * `transparent` unless overridden in the provided payload.
+ * `transparent` unless overridden in the provided payload. All other
+ * settings including `num-lines` and `vertical-align` for columns are
+ * passed through unchanged.
  */
 import '../expandable-row/ExpandableRow.js';
 

@@ -33,6 +33,10 @@
  *   - name: string - column label
  *   - width: string - CSS-like width (e.g., "20%", "120px", or "auto")
  *   - contents: string - content to render for the column
+ *   - num-lines: number (optional, default: 1) - maximum number of lines of text
+ *     to display before truncating with "...". Uses CSS line-clamp for multi-line truncation.
+ *   - vertical-align: string (optional, default: "center") - vertical alignment of column content.
+ *     Options: "top", "center", "bottom".
  *
  * Behavior notes:
  * - Percent widths are converted to pixel widths based on the available row space
@@ -139,31 +143,43 @@ class DataRow extends HTMLElement {
       const width = col.width || 'auto';
       const name = col.name || '';
       const contents = col.contents || '';
+      const numLines = col['num-lines'] != null ? parseInt(col['num-lines'], 10) : 1;
+      const verticalAlign = col['vertical-align'] || 'center';
       const safeWidth = String(width).trim();
       const nameHtml = showNames ? `<div class="name">${this._escapeHtml(name)}</div>` : '';
+      
+      // Map vertical-align to CSS align-self values (to override parent's align-items: center)
+      const alignMap = { 'top': 'flex-start', 'center': 'center', 'bottom': 'flex-end' };
+      const alignSelf = alignMap[verticalAlign] || 'center';
+      
+      // Build contents div with appropriate line-clamp styling
+      const contentsStyle = numLines > 1 
+        ? `display: -webkit-box; -webkit-line-clamp: ${numLines}; -webkit-box-orient: vertical; overflow: hidden; white-space: normal;`
+        : '';
+      const contentsDiv = `<div class="contents" style="${contentsStyle}">${this._escapeHtml(contents)}</div>`;
 
       // Percent width: compute pixel width from available space
       if (safeWidth.endsWith('%')) {
         const pct = parseFloat(safeWidth.replace('%', '')) || 0;
         const px = Math.floor((pct / 100) * available);
-        return `<div class="col" style="flex: 0 0 ${px}px; max-width: ${px}px; width: ${px}px;">
+        return `<div class="col" style="flex: 0 0 ${px}px; max-width: ${px}px; width: ${px}px; align-self: ${alignSelf};">
           ${nameHtml}
-          <div class="contents">${this._escapeHtml(contents)}</div>
+          ${contentsDiv}
         </div>`;
       }
 
       // auto: flexible column that grows/shrinks
       if (safeWidth === 'auto') {
-        return `<div class="col" style="flex: 1 1 auto; min-width: 0;">
+        return `<div class="col" style="flex: 1 1 auto; min-width: 0; align-self: ${alignSelf};">
           ${nameHtml}
-          <div class="contents">${this._escapeHtml(contents)}</div>
+          ${contentsDiv}
         </div>`;
       }
 
       // fallback: treat the provided width as a CSS value (e.g., "120px")
-      return `<div class="col" style="flex: 0 0 ${safeWidth}; max-width: ${safeWidth};">
+      return `<div class="col" style="flex: 0 0 ${safeWidth}; max-width: ${safeWidth}; align-self: ${alignSelf};">
         ${nameHtml}
-        <div class="contents">${this._escapeHtml(contents)}</div>
+        ${contentsDiv}
       </div>`;
     }).join('');
 
@@ -179,8 +195,8 @@ class DataRow extends HTMLElement {
     // detect overflowing content and add a tooltip (title) for hover
     const contentEls = this.shadowRoot.querySelectorAll('.contents');
     contentEls.forEach(el => {
-      // trigger layout and check overflow
-      const isOverflowing = el.scrollWidth > el.clientWidth;
+      // trigger layout and check overflow (horizontal or vertical)
+      const isOverflowing = el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
       if (isOverflowing) {
         el.setAttribute('title', el.textContent);
       } else {

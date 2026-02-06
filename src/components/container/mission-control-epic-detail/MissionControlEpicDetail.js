@@ -271,11 +271,15 @@ class MissionControlEpicDetail extends HTMLElement {
       );
       
       const columnWidths = ['10%', '30%', '40%', '10%', '10%'];
+      const columnNumLines = [1, 3, 3, 1, 1]; // Truncate ID and Status to 1 line, allow more for Name and Description
+      const columnVerticalAligns = ['top', 'top', 'top', 'center', 'center']; // First 3 columns top-aligned, final 2 centered
 
       return {
         "data-row": storyDataRow,
         "expandable-list": {
           "column-widths": columnWidths,
+          "column-num-lines": columnNumLines,
+          "column-vertical-aligns": columnVerticalAligns,
           "row-data": taskRowData,
           "row-background-colors": taskRowColors
         },

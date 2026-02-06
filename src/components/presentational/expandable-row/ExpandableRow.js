@@ -16,7 +16,11 @@
  *
  * Expects `data` JSON with two top-level keys: `data-row` and `expandable-list`.
  * - `data-row`: object compatible with the existing `data-row` component
+ *   - Each column can include a `num-lines` property to control text truncation
+ *   - Each column can include a `vertical-align` property to control vertical alignment
  * - `expandable-list`: object compatible with `expandable-list` component
+ *   - Can include `column-num-lines` array to control text truncation for list rows
+ *   - Can include `column-vertical-aligns` array to control vertical alignment for list rows
  * - `options`: (optional) object
  *   - `border-color`: string (default: medium gray `#777`) - CSS color used for the
  *     rounded container border around the row

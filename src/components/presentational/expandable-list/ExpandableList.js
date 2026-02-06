@@ -7,14 +7,17 @@
  * Expected `data` JSON:
  * {
  *   "column-widths": ["10%","20%",...],
+ *   "column-num-lines": [1, 3, 1, ...],
+ *   "column-vertical-aligns": ["top", "center", "bottom", ...],
  *   "row-border-colors": ["black","black",...],
  *   "row-data": [ ["T-01","Build feature","desc","In Progress","High","2026-02-01"], ... ]
  * }
  *
  * For each entry in `row-data` this component will create a <data-row>
  * instance and pass a constructed `data` payload where each column object
- * receives the matching width (from `column-widths`) and the cell value as
- * `contents`.
+ * receives the matching width (from `column-widths`), the matching num-lines
+ * (from `column-num-lines`), the matching vertical-align (from `column-vertical-aligns`),
+ * and the cell value as `contents`.
  *
  * Additionally, if `row-border-colors` is provided it should be a single
  * array with one color per row. Each color will be forwarded into the
@@ -77,6 +80,8 @@ class ExpandableList extends HTMLElement {
     // render start
 
     const widths = Array.isArray(parsed['column-widths']) ? parsed['column-widths'] : [];
+    const numLines = Array.isArray(parsed['column-num-lines']) ? parsed['column-num-lines'] : [];
+    const verticalAligns = Array.isArray(parsed['column-vertical-aligns']) ? parsed['column-vertical-aligns'] : [];
     const rows = Array.isArray(parsed['row-data']) ? parsed['row-data'] : [];
     const rowBorderColors = Array.isArray(parsed['row-border-colors']) ? parsed['row-border-colors'] : [];
     const rowBackgroundColors = Array.isArray(parsed['row-background-colors']) ? parsed['row-background-colors'] : [];
@@ -89,11 +94,20 @@ class ExpandableList extends HTMLElement {
     const rowsHtml = rows.map((row, rowIdx) => {
       // Build columns array expected by DataRow
       const cols = row.map((cell, idx) => {
-        return {
+        const colDef = {
           name: '',
           width: widths[idx] || 'auto',
           contents: String(cell != null ? cell : '')
         };
+        // Add num-lines if provided
+        if (numLines[idx] != null) {
+          colDef['num-lines'] = numLines[idx];
+        }
+        // Add vertical-align if provided
+        if (verticalAligns[idx] != null) {
+          colDef['vertical-align'] = verticalAligns[idx];
+        }
+        return colDef;
       });
 
       // Determine row border and background colors. Use separate arrays if provided.
@@ -144,7 +158,22 @@ class ExpandableList extends HTMLElement {
         const placeholders = Array.from(rowsContainer.children);
         rows.forEach((row, i) => {
           const el = document.createElement('data-row');
-          const cols = row.map((cell, idx) => ({ name: '', width: widths[idx] || 'auto', contents: String(cell != null ? cell : '') }));
+          const cols = row.map((cell, idx) => {
+            const colDef = {
+              name: '', 
+              width: widths[idx] || 'auto', 
+              contents: String(cell != null ? cell : '')
+            };
+            // Add num-lines if provided
+            if (numLines[idx] != null) {
+              colDef['num-lines'] = numLines[idx];
+            }
+            // Add vertical-align if provided
+            if (verticalAligns[idx] != null) {
+              colDef['vertical-align'] = verticalAligns[idx];
+            }
+            return colDef;
+          });
           const rowBorderColor = rowBorderColors[i] || 'black';
           const rowBackgroundColor = rowBackgroundColors[i] || rowBorderColors[i] || 'black';
           const payload = { options: { show_column_names: false, 'border-color': rowBorderColor, 'background-color': rowBackgroundColor }, columns: cols };
