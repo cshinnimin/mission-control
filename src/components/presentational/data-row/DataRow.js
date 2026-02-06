@@ -7,24 +7,26 @@
  * Example `data` JSON:
  * {
  *   "options": {
- *     "show_column_names": true,
+ *     "show-column-names": true,
+ *     "has-border": true,
  *     "border-color": "darkgreen",
  *     "background-color": "#871F78"
  *   },
  *   "columns": [
- *     { "name": "ID", "width": "10%", "contents": "T-01" },
- *     { "name": "Name", "width": "20%", "contents": "Build feature" },
- *     { "name": "Description", "width": "15%", "contents": "A long description that may overflow" },
- *     { "name": "Status", "width": "20%", "contents": "In Progress" },
- *     { "name": "Priority", "width": "20%", "contents": "High" },
- *     { "name": "ETA", "width": "15%", "contents": "2026-02-01" }
+ *     { "name": "ID", "width": "10%", "contents": "T-01", "num-lines": 1, "vertical-align": "center" },
+ *     { "name": "Name", "width": "20%", "contents": "Build feature", "num-lines": 2, "vertical-align": "top" },
+ *     { "name": "Description", "width": "30%", "contents": "A long description", "num-lines": 3, "vertical-align": "top" },
+ *     { "name": "Status", "width": "15%", "contents": "In Progress" },
+ *     { "name": "Priority", "width": "15%", "contents": "High" },
+ *     { "name": "ETA", "width": "10%", "contents": "2026-02-01" }
  *   ]
  * }
  *
  * Inputs (via `data` attribute, JSON):
  * - options: (optional) object
- *   - show_column_names: boolean (default: true) - whether to render the small column name label above contents
- *   - border-color: string (default: "black") - CSS color used for 2px border around the row
+ *   - show-column-names: boolean (default: true) - whether to render the small column name label above contents
+ *   - has-border: boolean (default: true) - whether to show the border around the row
+ *   - border-color: string (default: "black") - CSS color used for border around the row (when has-border is true)
  *   - background-color: string (optional) - CSS color used as a subtle background
  *     highlight for the row. If omitted the row is transparent. When provided
  *     the component converts the color to an `rgba(...)` with light alpha so
@@ -41,8 +43,7 @@
  * Behavior notes:
  * - Percent widths are converted to pixel widths based on the available row space
  *   (accounting for gaps and padding) to prevent clipping/overflow.
- * - Column contents do not wrap; overflowing text is truncated and shows the
- *   full text as a native tooltip on hover (via the `title` attribute).
+ * - Overflowing text is truncated and shows the full text as a native tooltip on hover (via the `title` attribute).
  */
 class DataRow extends HTMLElement {
   constructor() {
@@ -114,8 +115,13 @@ class DataRow extends HTMLElement {
     const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
 
     // default: show column names unless explicitly set to false
-    const showNames = parsed && parsed.options && typeof parsed.options.show_column_names === 'boolean'
-      ? parsed.options.show_column_names
+    const showNames = parsed && parsed.options && typeof parsed.options['show-column-names'] === 'boolean'
+      ? parsed.options['show-column-names']
+      : true;
+
+    // has-border option: default to true
+    const hasBorder = parsed && parsed.options && typeof parsed.options['has-border'] === 'boolean'
+      ? parsed.options['has-border']
       : true;
 
     // border color option: default to black
@@ -183,11 +189,12 @@ class DataRow extends HTMLElement {
       </div>`;
     }).join('');
 
-    // Render shadow DOM; apply 2px border with the configured color and
+    // Render shadow DOM; apply border (if enabled) with the configured color and
     // an optional subtle background highlight.
+    const borderStyle = hasBorder ? `border: 2px solid ${this._escapeHtml(borderColor)};` : 'border: none;';
     this.shadowRoot.innerHTML = `
       ${style}
-      <div class="pill" style="border: 2px solid ${this._escapeHtml(borderColor)}; background-color: ${this._escapeHtml(bgRgba)};">
+      <div class="pill" style="${borderStyle} background-color: ${this._escapeHtml(bgRgba)};">
         ${colsHtml}
       </div>
     `;

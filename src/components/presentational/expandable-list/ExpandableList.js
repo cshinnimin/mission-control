@@ -6,10 +6,12 @@
  *
  * Expected `data` JSON:
  * {
- *   "column-widths": ["10%","20%",...],
- *   "column-num-lines": [1, 3, 1, ...],
+ *   "column-widths": ["10%","20%","30%",...],
+ *   "column-num-lines": [1, 3, 2, ...],
  *   "column-vertical-aligns": ["top", "center", "bottom", ...],
- *   "row-border-colors": ["black","black",...],
+ *   "rows-have-borders": true,
+ *   "row-border-colors": ["black","darkgreen",...],
+ *   "row-background-colors": ["black","darkgreen",...],
  *   "row-data": [ ["T-01","Build feature","desc","In Progress","High","2026-02-01"], ... ]
  * }
  *
@@ -19,12 +21,18 @@
  * (from `column-num-lines`), the matching vertical-align (from `column-vertical-aligns`),
  * and the cell value as `contents`.
  *
- * Additionally, if `row-border-colors` is provided it should be a single
- * array with one color per row. Each color will be forwarded into the
- * corresponding <data-row> payload as `options.border-color` so the row
- * component can apply the desired border color. The same color is also
- * forwarded as `options.background-color` (unless overridden) so callers
- * can request a subtle filled background in addition to the border.
+ * Options:
+ * - column-widths: array of width strings for each column (e.g., "10%", "20px", "auto")
+ * - column-num-lines: array of numbers specifying max lines per column (default: 1)
+ * - column-vertical-aligns: array of alignment strings ("top", "center", "bottom") per column
+ * - rows-have-borders: boolean (default: true) - whether rows should display borders
+ * - row-border-colors: array with one color per row for the border
+ * - row-background-colors: array with one color per row for the background
+ * - row-data: array of arrays, where each inner array represents one row's cell values
+ *
+ * If `row-border-colors` is provided, each color is forwarded to the corresponding
+ * <data-row> as `options.border-color`. The same color is also forwarded as
+ * `options.background-color` (unless `row-background-colors` overrides it).
  *
  * Attribute: `expanded` (optional)
  * - If omitted or set to "true" (string), the list is rendered normally.
@@ -82,6 +90,7 @@ class ExpandableList extends HTMLElement {
     const widths = Array.isArray(parsed['column-widths']) ? parsed['column-widths'] : [];
     const numLines = Array.isArray(parsed['column-num-lines']) ? parsed['column-num-lines'] : [];
     const verticalAligns = Array.isArray(parsed['column-vertical-aligns']) ? parsed['column-vertical-aligns'] : [];
+    const rowsHaveBorders = typeof parsed['rows-have-borders'] === 'boolean' ? parsed['rows-have-borders'] : true;
     const rows = Array.isArray(parsed['row-data']) ? parsed['row-data'] : [];
     const rowBorderColors = Array.isArray(parsed['row-border-colors']) ? parsed['row-border-colors'] : [];
     const rowBackgroundColors = Array.isArray(parsed['row-background-colors']) ? parsed['row-background-colors'] : [];
@@ -115,7 +124,7 @@ class ExpandableList extends HTMLElement {
       const rowBackgroundColor = rowBackgroundColors[rowIdx] || rowBorderColors[rowIdx] || 'black';
 
       const payload = {
-        options: { show_column_names: false, 'border-color': rowBorderColor, 'background-color': rowBackgroundColor },
+        options: { 'show-column-names': false, 'has-border': rowsHaveBorders, 'border-color': rowBorderColor, 'background-color': rowBackgroundColor },
         columns: cols
       };
 
@@ -176,7 +185,7 @@ class ExpandableList extends HTMLElement {
           });
           const rowBorderColor = rowBorderColors[i] || 'black';
           const rowBackgroundColor = rowBackgroundColors[i] || rowBorderColors[i] || 'black';
-          const payload = { options: { show_column_names: false, 'border-color': rowBorderColor, 'background-color': rowBackgroundColor }, columns: cols };
+          const payload = { options: { 'show-column-names': false, 'has-border': rowsHaveBorders, 'border-color': rowBorderColor, 'background-color': rowBackgroundColor }, columns: cols };
           el.setAttribute('data', JSON.stringify(payload).replace(/</g, '\u003c'));
           // Replace placeholder with real element
           const ph = placeholders[i];

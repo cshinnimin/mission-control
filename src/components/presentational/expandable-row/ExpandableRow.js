@@ -6,34 +6,56 @@
  * 
  * Example `data` JSON:
  * {
- *     "data-row": { ... },            // same schema as `data-row` component
- *     "expandable-list": { ... },     // same schema as `expandable-list` component
- *     "options": {
- *         "border-color": "black",
- *         "background-color": "transparent"
- *      }
+ *   "data-row": {
+ *     "options": { "show-column-names": true, "has-border": true, "border-color": "black" },
+ *     "columns": [
+ *       { "name": "ID", "width": "10%", "contents": "STORY-123", "num-lines": 1, "vertical-align": "center" },
+ *       { "name": "Name", "width": "30%", "contents": "Story name", "num-lines": 2, "vertical-align": "top" }
+ *     ]
+ *   },
+ *   "expandable-list": {
+ *     "column-widths": ["10%", "30%", "40%", "10%", "10%"],
+ *     "column-num-lines": [1, 3, 3, 1, 1],
+ *     "column-vertical-aligns": ["top", "top", "top", "center", "center"],
+ *     "rows-have-borders": false,
+ *     "row-data": [ ["T-01", "Task name", "Task desc", "In Progress", "3"] ]
+ *   },
+ *   "options": {
+ *     "border-color": "black",
+ *     "background-color": "transparent",
+ *     "detail-rows-have-borders": false
+ *   }
  * }
  *
- * Expects `data` JSON with two top-level keys: `data-row` and `expandable-list`.
- * - `data-row`: object compatible with the existing `data-row` component
- *   - Each column can include a `num-lines` property to control text truncation
- *   - Each column can include a `vertical-align` property to control vertical alignment
- * - `expandable-list`: object compatible with `expandable-list` component
- *   - Can include `column-num-lines` array to control text truncation for list rows
- *   - Can include `column-vertical-aligns` array to control vertical alignment for list rows
- * - `options`: (optional) object
- *   - `border-color`: string (default: medium gray `#777`) - CSS color used for the
- *     rounded container border around the row
- *   - `background-color`: string (optional) - CSS color used as a subtle
- *     background highlight for the container. If you want to highlight the
- *     inner `data-row`, include `background-color` inside the `data-row`
- *     payload; `data-row` supports `options.background-color` which will be
- *     applied as a soft, semi-transparent fill.
+ * Inputs (via `data` attribute, JSON):
+ * - data-row: object - Configuration for the main row (compatible with `data-row` component)
+ *   - options.show-column-names: whether to show column name labels
+ *   - options.has-border: whether the main row has a border
+ *   - options.border-color: color of the main row border
+ *   - columns: array of column objects
+ *     - name, width, contents: standard column properties
+ *     - num-lines: max lines before truncation (default: 1)
+ *     - vertical-align: "top", "center", or "bottom" (default: "center")
+ * 
+ * - expandable-list: object - Configuration for the detail rows (compatible with `expandable-list` component)
+ *   - column-widths: array of width strings
+ *   - column-num-lines: array of max lines per column
+ *   - column-vertical-aligns: array of alignment strings per column
+ *   - rows-have-borders: whether detail rows show borders (controlled by detail-rows-have-borders option)
+ *   - row-data: array of arrays with cell values
+ *   - row-border-colors: optional array of border colors per row
+ *   - row-background-colors: optional array of background colors per row
+ * 
+ * - options: (optional) object
+ *   - border-color: string (default: "#777") - CSS color for the container border around the expandable row
+ *   - background-color: string (optional) - CSS color for container background
+ *   - detail-rows-have-borders: boolean (default: true) - whether the detail rows (expandable-list) display borders.
+ *     This is passed through as `rows-have-borders` to the expandable-list component.
  *
  * Layout:
- * - Rounded box (`.container`) with a top row containing the `data-row`
- *   and a small expand/collapse button aligned to the right.
- * - The `expandable-list` is rendered underneath and collapsed by default.
+ * - Rounded container with a top row containing the `data-row` and an expand/collapse button
+ * - The `expandable-list` is rendered underneath and collapsed by default
+ * - The main row always has its configured border; detail rows can optionally hide borders via detail-rows-have-borders
  */
 import '../data-row/DataRow.js';
 import '../expandable-list/ExpandableList.js';
@@ -90,6 +112,10 @@ class ExpandableRow extends HTMLElement {
     // options: allow configuring border color (default to medium gray)
     const options = parsed.options || {};
     const borderColor = options['border-color'] || '#777';
+    const detailRowsHaveBorders = typeof options['detail-rows-have-borders'] === 'boolean' ? options['detail-rows-have-borders'] : true;
+    
+    // Pass detail-rows-have-borders to the expandable-list as rows-have-borders
+    const listDataWithBorders = Object.assign({}, listData, { 'rows-have-borders': detailRowsHaveBorders });
 
     // Compose inner HTML - include css + structure
     const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
@@ -107,7 +133,7 @@ class ExpandableRow extends HTMLElement {
           </button>
         </div>
         <div class="list" style="max-height:0">
-          <expandable-list data='${this._escapeHtml(JSON.stringify(listData))}'></expandable-list>
+          <expandable-list data='${this._escapeHtml(JSON.stringify(listDataWithBorders))}'></expandable-list>
         </div>
       </div>
     `;

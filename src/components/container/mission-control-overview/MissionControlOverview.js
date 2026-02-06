@@ -105,7 +105,7 @@ class MissionControlOverview extends HTMLElement {
         holidays: holidays,
         "data-row": {
           options: {
-            show_column_names: true,
+            "show-column-names": true,
             "border-color": "transparent",
             "background-color": "transparent"
           },

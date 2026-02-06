@@ -6,13 +6,20 @@
  *
  * Expects `data` to be an array where each entry is the same payload
  * that an individual <expandable-row> expects (object with `data-row`
- * and `expandable-list` keys).
+ * and `expandable-list` keys, plus optional `options`).
+ *
+ * Example entry:
+ * {
+ *   "data-row": { "options": {...}, "columns": [...] },
+ *   "expandable-list": { "column-widths": [...], "row-data": [...], ... },
+ *   "options": { "border-color": "black", "detail-rows-have-borders": false }
+ * }
  *
  * Note: This component ensures child `expandable-row` entries receive
  * `options.border-color` and `options.background-color` defaulting to
  * `transparent` unless overridden in the provided payload. All other
- * settings including `num-lines` and `vertical-align` for columns are
- * passed through unchanged.
+ * settings including `num-lines`, `vertical-align`, `has-border`, and
+ * `detail-rows-have-borders` for columns and rows are passed through unchanged.
  */
 import '../expandable-row/ExpandableRow.js';
 

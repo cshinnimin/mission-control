@@ -155,7 +155,7 @@ class MissionControlEpicDetail extends HTMLElement {
       holidays: holidays,
       "data-row": {
         options: {
-          show_column_names: true,
+          "show-column-names": true,
           "border-color": "transparent",
           "background-color": "transparent"
         },
@@ -222,7 +222,7 @@ class MissionControlEpicDetail extends HTMLElement {
       // Build data-row for the story
       const storyDataRow = {
         options: {
-          show_column_names: true,
+          "show-column-names": true,
           "border-color": "black",
           "background-color": backgroundColor
         },
@@ -285,7 +285,8 @@ class MissionControlEpicDetail extends HTMLElement {
         },
         "options": {
           "border-color": "black",
-          "background-color": "transparent"
+          "background-color": "transparent",
+          "detail-rows-have-borders": false
         }
       };
     });

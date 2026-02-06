@@ -7,24 +7,35 @@
  * Expected `data` JSON:
  * {
  *   "title": "Card Title 1",
- *   "data-row": { ... },           // same schema as `data-row` component
+ *   "data-row": {
+ *     "options": { "show-column-names": true, "has-border": true, ... },
+ *     "columns": [
+ *       { "name": "Owner", "width": "20%", "contents": "John", "num-lines": 1, "vertical-align": "center" },
+ *       ...
+ *     ]
+ *   },
  *   "progress": 35,                // percent (0-100)
  *   "blocked": 15,                 // percent (0-100)
  *   "projected_completion": "2026-10-05"  // optional: YYYY-MM-DD format
  * }
  *
+ * Inputs:
+ * - title: string - large title displayed at top of card
+ * - data-row: object - same schema as `data-row` component with full support for:
+ *   - options.show-column-names: show/hide column labels
+ *   - options.has-border: show/hide row border
+ *   - options.border-color, background-color: styling options
+ *   - columns with num-lines and vertical-align settings
+ * - progress: number (0-100) - percentage of work completed
+ * - blocked: number (0-100) - percentage of work blocked
+ * - projected_completion: string (optional) - date in YYYY-MM-DD format
+ *
  * Layout:
  * - Large title at top
- * - A `data-row` rendered beneath the title using the supplied `data-row`
- * - A rounded progress track beneath the data-row. The left side shows
- *   completed progress in dark green, the right side shows blocked portion
- *   in dark red. The track fills the horizontal space of its container.
+ * - A `data-row` rendered beneath the title
+ * - A rounded progress track showing completed (green) and blocked (red) portions
  * - If projected_completion is provided, displays "Completion: <formatted date>"
  *   below the progress bar, where the date is formatted as "Friday, October 5".
- *
- * Note: The nested `data-row` payload accepts the `options.background-color`
- * property (in addition to `options.border-color`) to request a subtle
- * highlighted background behind the row.
  */
 import '../data-row/DataRow.js';
 
