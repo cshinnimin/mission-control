@@ -105,7 +105,6 @@ class MissionControl extends HTMLElement {
 
   render() {
     const dataAttr = this.getAttribute('data');
-    console.log('[MissionControl] render called, data attr:', dataAttr ? 'present' : 'missing');
     if (!dataAttr) {
       this.innerHTML = '<div>No data provided</div>';
       return;
@@ -114,12 +113,6 @@ class MissionControl extends HTMLElement {
     let parsedData;
     try {
       parsedData = JSON.parse(dataAttr);
-      console.log('[MissionControl] parsed data:', { 
-        hasName: !!parsedData.name, 
-        hasVelocity: !!parsedData.velocity, 
-        hasHolidays: !!parsedData.holidays,
-        epicCount: parsedData.epics?.length || 0 
-      });
     } catch (e) {
       console.error('[MissionControl] JSON parse error:', e);
       this.innerHTML = '<div>Invalid data format</div>';
