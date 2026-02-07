@@ -172,7 +172,7 @@ class MissionControlEpicDetail extends HTMLElement {
           {
             name: "Status",
             width: "20%",
-            contents: epic.jira_status || epic.status
+            contents: epic.jira_status || ""
           },
           {
             name: "Stories",
@@ -254,7 +254,7 @@ class MissionControlEpicDetail extends HTMLElement {
           {
             name: "Status",
             width: "10%",
-            contents: story.status || ''
+            contents: story.jira_status || ''
           },
           {
             name: "Points",
