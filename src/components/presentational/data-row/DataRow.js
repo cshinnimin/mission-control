@@ -13,7 +13,7 @@
  *     "background-color": "#871F78"
  *   },
  *   "columns": [
- *     { "name": "ID", "width": "10%", "contents": "T-01", "num-lines": 1, "vertical-align": "center" },
+ *     { "name": "ID", "width": "10%", "contents": "T-01", "num-lines": 1, "vertical-align": "center", "link": "https://example.com/T-01" },
  *     { "name": "Name", "width": "20%", "contents": "Build feature", "num-lines": 2, "vertical-align": "top" },
  *     { "name": "Description", "width": "30%", "contents": "A long description", "num-lines": 3, "vertical-align": "top" },
  *     { "name": "Status", "width": "15%", "contents": "In Progress" },
@@ -39,6 +39,8 @@
  *     to display before truncating with "...". Uses CSS line-clamp for multi-line truncation.
  *   - vertical-align: string (optional, default: "center") - vertical alignment of column content.
  *     Options: "top", "center", "bottom".
+ *   - link: string (optional) - if provided, the column contents will be rendered as a
+ *     hyperlink to this URL. The link opens in a new tab (target="_blank").
  *
  * Behavior notes:
  * - Percent widths are converted to pixel widths based on the available row space
@@ -145,10 +147,11 @@ class DataRow extends HTMLElement {
     const available = Math.max(0, hostWidth - totalGaps - pillPaddingLR);
 
     // Build column HTML. For percent widths we convert to integer pixels.
-    const colsHtml = columns.map(col => {
+    const colsHtml = columns.map((col, colIdx) => {
       const width = col.width || 'auto';
       const name = col.name || '';
       const contents = col.contents || '';
+      const link = col.link;
       const numLines = col['num-lines'] != null ? parseInt(col['num-lines'], 10) : 1;
       const verticalAlign = col['vertical-align'] || 'center';
       const safeWidth = String(width).trim();
@@ -162,7 +165,15 @@ class DataRow extends HTMLElement {
       const contentsStyle = numLines > 1 
         ? `display: -webkit-box; -webkit-line-clamp: ${numLines}; -webkit-box-orient: vertical; overflow: hidden; white-space: normal;`
         : '';
-      const contentsDiv = `<div class="contents" style="${contentsStyle}">${this._escapeHtml(contents)}</div>`;
+      
+      // If a link is provided, wrap contents in an anchor tag
+      let contentsDiv;
+      if (link && link !== '') {
+        const escapedLink = this._escapeHtml(link);
+        contentsDiv = `<div class="contents" style="${contentsStyle}"><a href="${escapedLink}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">${this._escapeHtml(contents)}</a></div>`;
+      } else {
+        contentsDiv = `<div class="contents" style="${contentsStyle}">${this._escapeHtml(contents)}</div>`;
+      }
 
       // Percent width: compute pixel width from available space
       if (safeWidth.endsWith('%')) {

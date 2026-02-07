@@ -46,10 +46,13 @@
  * Inputs (via `data` attribute, JSON):
  * - epic: object - epic details
  *   - id: string - epic identifier (e.g., "EPIC-123")
+ *   - link: string (optional) - URL for the epic (if provided, epic card may link to it)
  *   - stories: array of story objects
  *     - id: string - story identifier (e.g., "STORY-456")
+ *     - link: string (optional) - URL for the story (renders ID column as hyperlink)
  *     - tasks: array of task objects
  *       - id: string - task identifier (e.g., "TASK-789")
+ *       - link: string (optional) - URL for the task (renders ID column as hyperlink)
  *
  * Layout:
  * - Single progress-card at top showing epic summary
@@ -220,6 +223,15 @@ class MissionControlEpicDetail extends HTMLElement {
       const backgroundColor = STORY_STATUS_COLORS[story.status] || 'transparent';
       
       // Build data-row for the story
+      const storyIdColumn = {
+        name: "ID",
+        width: "10%",
+        contents: story.id || ''
+      };
+      if (story.link) {
+        storyIdColumn.link = story.link;
+      }
+      
       const storyDataRow = {
         options: {
           "show-column-names": true,
@@ -227,11 +239,7 @@ class MissionControlEpicDetail extends HTMLElement {
           "background-color": backgroundColor
         },
         columns: [
-          {
-            name: "ID",
-            width: "10%",
-            contents: story.id || ''
-          },
+          storyIdColumn,
           {
             name: "Name",
             width: "30%",
@@ -265,6 +273,11 @@ class MissionControlEpicDetail extends HTMLElement {
         String(task.points || 0)
       ]);
       
+      // Build column-links array for tasks (link the ID column if task has a link)
+      const taskColumnLinks = tasks.map(task => 
+        task.link || null
+      );
+      
       // Apply same color coding to tasks based on their status
       const taskRowColors = tasks.map(task => 
         STORY_STATUS_COLORS[task.status] || 'transparent'
@@ -280,6 +293,7 @@ class MissionControlEpicDetail extends HTMLElement {
           "column-widths": columnWidths,
           "column-num-lines": columnNumLines,
           "column-vertical-aligns": columnVerticalAligns,
+          "column-links": taskColumnLinks,
           "row-data": taskRowData,
           "row-background-colors": taskRowColors
         },

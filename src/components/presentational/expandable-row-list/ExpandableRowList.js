@@ -11,15 +11,15 @@
  * Example entry:
  * {
  *   "data-row": { "options": {...}, "columns": [...] },
- *   "expandable-list": { "column-widths": [...], "row-data": [...], ... },
+ *   "expandable-list": { "column-widths": [...], "column-links": [...], "row-data": [...], ... },
  *   "options": { "border-color": "black", "detail-rows-have-borders": false }
  * }
  *
  * Note: This component ensures child `expandable-row` entries receive
  * `options.border-color` and `options.background-color` defaulting to
  * `transparent` unless overridden in the provided payload. All other
- * settings including `num-lines`, `vertical-align`, `has-border`, and
- * `detail-rows-have-borders` for columns and rows are passed through unchanged.
+ * settings including `num-lines`, `vertical-align`, `has-border`, `link`,
+ * and `detail-rows-have-borders` for columns and rows are passed through unchanged.
  */
 import '../expandable-row/ExpandableRow.js';
 

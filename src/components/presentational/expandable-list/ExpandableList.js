@@ -9,6 +9,7 @@
  *   "column-widths": ["10%","20%","30%",...],
  *   "column-num-lines": [1, 3, 2, ...],
  *   "column-vertical-aligns": ["top", "center", "bottom", ...],
+ *   "column-links": ["https://link1", null, "https://link3", ...],
  *   "rows-have-borders": true,
  *   "row-border-colors": ["black","darkgreen",...],
  *   "row-background-colors": ["black","darkgreen",...],
@@ -19,12 +20,14 @@
  * instance and pass a constructed `data` payload where each column object
  * receives the matching width (from `column-widths`), the matching num-lines
  * (from `column-num-lines`), the matching vertical-align (from `column-vertical-aligns`),
- * and the cell value as `contents`.
+ * the matching link (from `column-links`), and the cell value as `contents`.
  *
  * Options:
  * - column-widths: array of width strings for each column (e.g., "10%", "20px", "auto")
  * - column-num-lines: array of numbers specifying max lines per column (default: 1)
  * - column-vertical-aligns: array of alignment strings ("top", "center", "bottom") per column
+ * - column-links: array with one link per ROW (not column) - the link applies to the first
+ *   column (typically the ID column). Provide null for rows without links.
  * - rows-have-borders: boolean (default: true) - whether rows should display borders
  * - row-border-colors: array with one color per row for the border
  * - row-background-colors: array with one color per row for the background
@@ -90,6 +93,7 @@ class ExpandableList extends HTMLElement {
     const widths = Array.isArray(parsed['column-widths']) ? parsed['column-widths'] : [];
     const numLines = Array.isArray(parsed['column-num-lines']) ? parsed['column-num-lines'] : [];
     const verticalAligns = Array.isArray(parsed['column-vertical-aligns']) ? parsed['column-vertical-aligns'] : [];
+    const columnLinks = Array.isArray(parsed['column-links']) ? parsed['column-links'] : [];
     const rowsHaveBorders = typeof parsed['rows-have-borders'] === 'boolean' ? parsed['rows-have-borders'] : true;
     const rows = Array.isArray(parsed['row-data']) ? parsed['row-data'] : [];
     const rowBorderColors = Array.isArray(parsed['row-border-colors']) ? parsed['row-border-colors'] : [];
@@ -115,6 +119,10 @@ class ExpandableList extends HTMLElement {
         // Add vertical-align if provided
         if (verticalAligns[idx] != null) {
           colDef['vertical-align'] = verticalAligns[idx];
+        }
+        // Add link to first column (index 0) if provided for this row
+        if (idx === 0 && columnLinks[rowIdx] != null) {
+          colDef['link'] = columnLinks[rowIdx];
         }
         return colDef;
       });
@@ -181,6 +189,10 @@ class ExpandableList extends HTMLElement {
             if (verticalAligns[idx] != null) {
               colDef['vertical-align'] = verticalAligns[idx];
             }
+            // Add link to first column (index 0) if provided for this row
+            if (idx === 0 && columnLinks[i] != null) {
+              colDef['link'] = columnLinks[i];
+            }
             return colDef;
           });
           const rowBorderColor = rowBorderColors[i] || 'black';
@@ -200,3 +212,4 @@ class ExpandableList extends HTMLElement {
 customElements.define('expandable-list', ExpandableList);
 
 export default ExpandableList;
+

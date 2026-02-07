@@ -9,7 +9,7 @@
  *   "data-row": {
  *     "options": { "show-column-names": true, "has-border": true, "border-color": "black" },
  *     "columns": [
- *       { "name": "ID", "width": "10%", "contents": "STORY-123", "num-lines": 1, "vertical-align": "center" },
+ *       { "name": "ID", "width": "10%", "contents": "STORY-123", "num-lines": 1, "vertical-align": "center", "link": "https://example.com/STORY-123" },
  *       { "name": "Name", "width": "30%", "contents": "Story name", "num-lines": 2, "vertical-align": "top" }
  *     ]
  *   },
@@ -17,6 +17,7 @@
  *     "column-widths": ["10%", "30%", "40%", "10%", "10%"],
  *     "column-num-lines": [1, 3, 3, 1, 1],
  *     "column-vertical-aligns": ["top", "top", "top", "center", "center"],
+ *     "column-links": ["https://example.com/task1", "https://example.com/task2", null],
  *     "rows-have-borders": false,
  *     "row-data": [ ["T-01", "Task name", "Task desc", "In Progress", "3"] ]
  *   },
@@ -36,11 +37,13 @@
  *     - name, width, contents: standard column properties
  *     - num-lines: max lines before truncation (default: 1)
  *     - vertical-align: "top", "center", or "bottom" (default: "center")
+ *     - link: (optional) URL to make the column contents a hyperlink (opens in new tab)
  * 
  * - expandable-list: object - Configuration for the detail rows (compatible with `expandable-list` component)
  *   - column-widths: array of width strings
  *   - column-num-lines: array of max lines per column
  *   - column-vertical-aligns: array of alignment strings per column
+ *   - column-links: (optional) array with one link per ROW (applied to first column of each row)
  *   - rows-have-borders: whether detail rows show borders (controlled by detail-rows-have-borders option)
  *   - row-data: array of arrays with cell values
  *   - row-border-colors: optional array of border colors per row
