@@ -157,7 +157,7 @@ class MissionControlEpicDetail extends HTMLElement {
         options: {
           "show-column-names": true,
           "border-color": "transparent",
-          "background-color": "transparent"
+          "background-color": epic.stories_blocked > 0 ? "rgba(139, 0, 0, 0.12)" : (epic.status === "IN_PROGRESS" ? "rgba(0, 100, 0, 0.12)" : (epic.status === "COMPLETE" ? "rgba(0, 0, 139, 0.12)" : "transparent"))
         },
         columns: [
           {
