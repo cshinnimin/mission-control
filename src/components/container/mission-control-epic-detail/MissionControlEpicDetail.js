@@ -151,6 +151,7 @@ class MissionControlEpicDetail extends HTMLElement {
     const progressCardData = {
       id: epic.id,
       title: epic.name,
+      "title-link": epic.link || '',
       progress: progress,
       blocked: blocked,
       remaining_points: epic.total_points - epic.points_complete,

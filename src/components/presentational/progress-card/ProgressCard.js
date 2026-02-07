@@ -7,6 +7,7 @@
  * Expected `data` JSON:
  * {
  *   "title": "Card Title 1",
+ *   "title-link": "https://example.com",  // optional: URL for title link
  *   "data-row": {
  *     "options": { "show-column-names": true, "has-border": true, ... },
  *     "columns": [
@@ -21,6 +22,7 @@
  *
  * Inputs:
  * - title: string - large title displayed at top of card
+ * - title-link: string (optional) - URL for the title link
  * - data-row: object - same schema as `data-row` component with full support for:
  *   - options.show-column-names: show/hide column labels
  *   - options.has-border: show/hide row border
@@ -87,6 +89,7 @@ class ProgressCard extends HTMLElement {
     try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
 
     const title = parsed.title || '';
+    const titleLink = parsed['title-link'] || '';
     const dataRow = parsed['data-row'] || {};
     const progress = Math.max(0, Math.min(100, Number(parsed.progress) || 0));
     const blocked = Math.max(0, Math.min(100, Number(parsed.blocked) || 0));
@@ -107,11 +110,16 @@ class ProgressCard extends HTMLElement {
     const projectedCompletion = this._calculateProjectedCompletion(remainingPoints, velocity, holidays, this._capacity);
     const formattedDate = this._formatDate(projectedCompletion);
 
+    // Render title as a link if title-link is provided, otherwise as plain text
+    const titleHtml = titleLink 
+      ? `<a href="${this._escapeHtml(titleLink)}" class="title-link" target="_blank" rel="noopener noreferrer">${this._escapeHtml(title)}</a>`
+      : this._escapeHtml(title);
+
     // compose inner HTML with a left-side label and bordered progress track
     this.shadowRoot.innerHTML = `
       ${style}
       <div class="card"${dataIdAttr}>
-        <div class="title">${this._escapeHtml(title)}</div>
+        <div class="title">${titleHtml}</div>
         <div class="data-row-wrap">
           <data-row data='${this._escapeHtml(JSON.stringify(dataRow))}'></data-row>
         </div>
