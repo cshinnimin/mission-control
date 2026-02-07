@@ -1969,6 +1969,7 @@
               "description": "Create page for managing email subscriptions",
               "points": 3,
               "status": "IN_PROGRESS",
+              "link": "https://example.com/task/TASK-008-02-02",
               "jira_status": "In Progress",
               "blocked": false
             },
@@ -2087,6 +2088,7 @@
           "name": "Mobile App Architecture Setup",
           "description": "Setup React Native project with navigation and state management",
           "status": "IN_PROGRESS",
+          "link": "https://example.com/story/STORY-009-01",
           "jira_status": "In Progress",
           "total_tasks": 6,
           "tasks_complete": 3,
@@ -2130,6 +2132,7 @@
               "description": "Implement login/signup screens with token storage",
               "points": 3,
               "status": "IN_PROGRESS",
+              "link": "https://example.com/task/TASK-009-01-04",
               "jira_status": "In Progress",
               "blocked": false
             },
@@ -2496,6 +2499,7 @@
           "name": "Sales Dashboard",
           "description": "Create real-time dashboard showing key sales metrics and trends",
           "status": "IN_PROGRESS",
+          "link": "https://example.com/story/STORY-010-02",
           "jira_status": "In Progress",
           "total_tasks":  6,
           "tasks_complete":  2,
@@ -2530,6 +2534,7 @@
               "description": "Create data pipelines to aggregate sales metrics",
               "points": 3,
               "status": "IN_PROGRESS",
+              "link": "https://example.com/task/TASK-010-02-03",
               "jira_status": "In Progress",
               "blocked": false
             },
