@@ -149,6 +149,8 @@
 
 .plan-btn:hover {
   background: #f8fafc;
+  box-shadow: 0 3px 6px rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
 }
 
 .plan-btn:focus-visible {
