@@ -65,6 +65,7 @@
  */
 import '../../presentational/progress-card/ProgressCard.js';
 import '../../presentational/expandable-row-list/ExpandableRowList.js';
+import '../../feature/capacity-card/CapacityCard.js';
 
 // Status color constants for easier maintenance
 const STORY_STATUS_COLORS = {
@@ -78,6 +79,7 @@ class MissionControlEpicDetail extends HTMLElement {
     super();
     this._progressCard = null;
     this._currentEpicId = '';
+    this._capacityCard = null;
   }
 
   static get observedAttributes() { return ['data']; }
@@ -219,6 +221,11 @@ class MissionControlEpicDetail extends HTMLElement {
     }
     // Keep global font for the ProgressCard
     progressCard.style.fontFamily = 'var(--global-font)';
+    progressCard.addEventListener('capacity-click', (e) => {
+      const title = e.detail && e.detail.title ? e.detail.title : '';
+      const id = e.detail && e.detail.id ? e.detail.id : '';
+      this._openCapacityModal(title, id, holidays || []);
+    });
     progressCard.addEventListener('capacity-change', (e) => {
       const id = e.detail && e.detail.id ? e.detail.id : '';
       const value = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
@@ -234,6 +241,24 @@ class MissionControlEpicDetail extends HTMLElement {
     container.appendChild(progressCard);
     this._progressCard = progressCard;
     this._currentEpicId = epic.id || '';
+
+    this._capacityCard = document.createElement('capacity-card');
+    this._capacityCard.addEventListener('capacity-close', () => {
+      this._closeCapacityModal();
+    });
+    this._capacityCard.addEventListener('capacity-updated', (e) => {
+      const id = e.detail && e.detail.id ? e.detail.id : '';
+      const value = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
+      if (!id || value == null) return;
+      this._persistCapacity(id, value);
+      this.applyCapacityUpdate(id, value);
+      this.dispatchEvent(new CustomEvent('capacity-updated', {
+        detail: { id, capacity: value },
+        bubbles: true,
+        composed: true
+      }));
+    });
+    container.appendChild(this._capacityCard);
 
     // Create expandable-row-list for stories
     const stories = Array.isArray(epic.stories) ? epic.stories : [];
@@ -331,6 +356,17 @@ class MissionControlEpicDetail extends HTMLElement {
 
     this.innerHTML = '';
     this.appendChild(container);
+  }
+
+  _openCapacityModal(title, id, holidays) {
+    if (!this._capacityCard) return;
+    this._capacityCard.setAttribute('data', JSON.stringify({ title, id, holidays: holidays || [] }));
+    this._capacityCard.setAttribute('open', '');
+  }
+
+  _closeCapacityModal() {
+    if (!this._capacityCard) return;
+    this._capacityCard.removeAttribute('open');
   }
 
   _loadCapacity(id) {
