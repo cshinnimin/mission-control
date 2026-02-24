@@ -79,6 +79,7 @@ class CapacityCard extends HTMLElement {
     try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
     const title = parsed.title || '';
     const isEditing = this._rows.some((r) => r.editing);
+    const hasRowError = this._rows.some((r) => r && r.error === 'required');
     const today = new Date().toISOString().split('T')[0];
     const targetCompletion = this._targetCompletion || today;
     const capacityValue = this._calculateCapacityValue(today, targetCompletion, this._rows, this._holidays);
@@ -94,16 +95,20 @@ class CapacityCard extends HTMLElement {
           <label class="target-label" for="capacity-target-date">Target Completion:</label>
           <input type="date" id="capacity-target-date" class="input date target" value="${this._escapeHtml(targetCompletion)}" />
         </div>
-        <div class="capacity-editor">
+        <div class="capacity-editor${hasRowError ? ' has-error' : ''}">
           <div class="rows">
             ${this._rows.map((row, index) => {
               if (row.editing) {
                 const startValue = row.start || today;
                 const endValue = row.end || today;
                 const isWarning = this._isAfterDate(endValue, targetCompletion);
+                const hasError = row.error === 'required';
                 return `
                   <div class="row editing" data-index="${index}">
-                    <input type="text" class="input name" placeholder="Developer" value="${this._escapeHtml(row.name || '')}" />
+                    <div class="field-group">
+                      <input type="text" class="input name${hasError ? ' error' : ''}" placeholder="Developer" value="${this._escapeHtml(row.name || '')}" />
+                      ${hasError ? '<div class="field-error">Required</div>' : ''}
+                    </div>
                     <input type="date" class="input date start" value="${this._escapeHtml(startValue)}" />
                     <input type="date" class="input date end${isWarning ? ' warning' : ''}" ${isWarning ? 'title="Dates past target completion ignored"' : ''} value="${this._escapeHtml(endValue)}" />
                     <div class="row-actions">
@@ -206,7 +211,8 @@ class CapacityCard extends HTMLElement {
       name: '',
       start: today,
       end: today,
-      editing: true
+      editing: true,
+      error: null
     });
     this._render();
   }
@@ -233,11 +239,21 @@ class CapacityCard extends HTMLElement {
     const start = startInput ? startInput.value : '';
     const end = endInput ? endInput.value : '';
 
+    if (!name) {
+      this._rows[index] = {
+        ...row,
+        error: 'required'
+      };
+      this._render();
+      return;
+    }
+
     this._rows[index] = {
-      name: name || 'Developer',
+      name: name,
       start: start || new Date().toISOString().split('T')[0],
       end: end || new Date().toISOString().split('T')[0],
-      editing: false
+      editing: false,
+      error: null
     };
     this._render();
   }
