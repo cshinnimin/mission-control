@@ -51,10 +51,12 @@
  */
 import '../../presentational/progress-card-grid/ProgressCardGrid.js';
 import '../../presentational/data-row/DataRow.js';
+import '../../feature/capacity-card/CapacityCard.js';
 
 class MissionControlOverview extends HTMLElement {
   constructor() {
     super();
+    this._capacityCard = null;
   }
 
   static get observedAttributes() { return ['data']; }
@@ -154,8 +156,32 @@ class MissionControlOverview extends HTMLElement {
       }));
     });
 
+    // Listen for capacity label clicks to open capacity modal
+    cardGrid.addEventListener('capacity-click', (e) => {
+      const title = e.detail && e.detail.title ? e.detail.title : '';
+      this._openCapacityModal(title);
+    });
+
     this.innerHTML = '';
     this.appendChild(cardGrid);
+
+    // Create and append capacity modal
+    this._capacityCard = document.createElement('capacity-card');
+    this._capacityCard.addEventListener('capacity-close', () => {
+      this._closeCapacityModal();
+    });
+    this.appendChild(this._capacityCard);
+  }
+
+  _openCapacityModal(title) {
+    if (!this._capacityCard) return;
+    this._capacityCard.setAttribute('data', JSON.stringify({ title }));
+    this._capacityCard.setAttribute('open', '');
+  }
+
+  _closeCapacityModal() {
+    if (!this._capacityCard) return;
+    this._capacityCard.removeAttribute('open');
   }
 }
 

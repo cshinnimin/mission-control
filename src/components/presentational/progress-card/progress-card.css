@@ -120,6 +120,17 @@
   white-space: nowrap;
   flex: 1;
   text-align: right;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.capacity-label:hover,
+.capacity-label:focus-visible {
+  text-decoration: underline;
+  outline: none;
 }
 
 .capacity-controls {

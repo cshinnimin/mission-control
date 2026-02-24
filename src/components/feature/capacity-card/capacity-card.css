@@ -1,0 +1,82 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+}
+
+:host([open]) {
+  display: block;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(640px, calc(100vw - 32px));
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0b1220;
+}
+
+.subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.placeholder {
+  border: 1px dashed #cbd5f5;
+  border-radius: 8px;
+  padding: 18px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn {
+  min-width: 88px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5f5;
+  background: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  color: #0b1220;
+}
+
+.btn.primary {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

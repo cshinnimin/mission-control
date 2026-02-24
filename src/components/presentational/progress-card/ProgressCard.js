@@ -96,6 +96,10 @@ class ProgressCard extends HTMLElement {
 
     const style = this._css ? `<style>${this._css}</style>` : `<style>:host{display:block}</style>`;
     const id = parsed.id || '';
+    this._capacityPayload = {
+      id: id,
+      title: title
+    };
     const dataIdAttr = id ? ` data-id="${this._escapeHtml(id)}"` : '';
     
     // Load capacity from localStorage if we have an id
@@ -132,7 +136,7 @@ class ProgressCard extends HTMLElement {
         </div>
         <div class="separator"></div>
         <div class="capacity-row">
-          <div class="capacity-label">Capacity:</div>
+          <button type="button" class="capacity-label" aria-label="Open capacity planner">Capacity:</button>
           <div class="capacity-controls">
             <button class="capacity-btn decrease" aria-label="Decrease capacity">−</button>
             <span class="capacity-value">${this._capacity.toFixed(2)}</span>
@@ -145,6 +149,7 @@ class ProgressCard extends HTMLElement {
 
     // Attach event listeners to capacity buttons
     this._attachCapacityListeners();
+    this._attachCapacityLabelListener();
   }
 
   _attachCapacityListeners() {
@@ -170,6 +175,28 @@ class ProgressCard extends HTMLElement {
         this._updateProjectedCompletion();
       });
     }
+  }
+
+  _attachCapacityLabelListener() {
+    const labelBtn = this.shadowRoot.querySelector('.capacity-label');
+    if (!labelBtn) return;
+
+    const onActivate = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.dispatchEvent(new CustomEvent('capacity-click', {
+        detail: { ...this._capacityPayload },
+        bubbles: true,
+        composed: true
+      }));
+    };
+
+    labelBtn.addEventListener('click', onActivate);
+    labelBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        onActivate(e);
+      }
+    });
   }
 
   _updateCapacityDisplay() {
