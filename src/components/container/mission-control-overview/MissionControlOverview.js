@@ -52,6 +52,7 @@
 import '../../presentational/progress-card-grid/ProgressCardGrid.js';
 import '../../presentational/data-row/DataRow.js';
 import '../../feature/capacity-card/CapacityCard.js';
+import { loadCapacity, saveCapacity } from '../../../service/storage.js';
 
 class MissionControlOverview extends HTMLElement {
   constructor() {
@@ -91,7 +92,7 @@ class MissionControlOverview extends HTMLElement {
 
     // Build progress cards data
     const progressCards = epics.map(epic => {
-      const capacity = this._loadCapacity(epic.id);
+      const capacity = loadCapacity(epic.id, 1.0);
       const progress = epic.total_points > 0 
         ? (epic.points_complete / epic.total_points) * 100 
         : 0;
@@ -170,7 +171,7 @@ class MissionControlOverview extends HTMLElement {
       const id = e.detail && e.detail.id ? e.detail.id : '';
       const capacity = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
       if (!id || capacity == null) return;
-      this._persistCapacity(id, capacity);
+      saveCapacity(id, capacity);
     });
 
     this.innerHTML = '';
@@ -185,7 +186,7 @@ class MissionControlOverview extends HTMLElement {
       const id = e.detail && e.detail.id ? e.detail.id : '';
       const capacity = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
       if (!id || capacity == null) return;
-      this._persistCapacity(id, capacity);
+      saveCapacity(id, capacity);
       this._applyCapacityUpdate(id, capacity);
       this.dispatchEvent(new CustomEvent('capacity-updated', {
         detail: { id, capacity },
@@ -218,28 +219,7 @@ class MissionControlOverview extends HTMLElement {
     }
   }
 
-  _loadCapacity(id) {
-    try {
-      const key = `progress-card-capacity-${id}`;
-      const stored = localStorage.getItem(key);
-      if (stored !== null) {
-        const parsed = parseFloat(stored);
-        if (!isNaN(parsed)) return parsed;
-      }
-    } catch (e) {
-      console.warn('Failed to load capacity from localStorage:', e);
-    }
-    return 1.00;
-  }
-
-  _persistCapacity(id, capacity) {
-    try {
-      const key = `progress-card-capacity-${id}`;
-      localStorage.setItem(key, String(capacity));
-    } catch (e) {
-      console.warn('Failed to save capacity to localStorage:', e);
-    }
-  }
+  
 }
 
 customElements.define('mission-control-overview', MissionControlOverview);

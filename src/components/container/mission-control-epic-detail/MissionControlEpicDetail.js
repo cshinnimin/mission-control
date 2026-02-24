@@ -66,6 +66,7 @@
 import '../../feature/progress-card/ProgressCard.js';
 import '../../presentational/expandable-row-list/ExpandableRowList.js';
 import '../../feature/capacity-card/CapacityCard.js';
+import { loadCapacity, saveCapacity } from '../../../service/storage.js';
 
 // Status color constants for easier maintenance
 const STORY_STATUS_COLORS = {
@@ -152,7 +153,7 @@ class MissionControlEpicDetail extends HTMLElement {
       : 0;
     const percentComplete = Math.round(progress);
 
-    const capacity = this._loadCapacity(epic.id);
+    const capacity = loadCapacity(epic.id, 1.0);
     const progressCardData = {
       id: epic.id,
       title: epic.name,
@@ -230,7 +231,7 @@ class MissionControlEpicDetail extends HTMLElement {
       const id = e.detail && e.detail.id ? e.detail.id : '';
       const value = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
       if (!id || value == null) return;
-      this._persistCapacity(id, value);
+      saveCapacity(id, value);
       this.applyCapacityUpdate(id, value);
       this.dispatchEvent(new CustomEvent('capacity-updated', {
         detail: { id, capacity: value },
@@ -250,7 +251,7 @@ class MissionControlEpicDetail extends HTMLElement {
       const id = e.detail && e.detail.id ? e.detail.id : '';
       const value = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
       if (!id || value == null) return;
-      this._persistCapacity(id, value);
+      saveCapacity(id, value);
       this.applyCapacityUpdate(id, value);
       this.dispatchEvent(new CustomEvent('capacity-updated', {
         detail: { id, capacity: value },
@@ -367,29 +368,6 @@ class MissionControlEpicDetail extends HTMLElement {
   _closeCapacityModal() {
     if (!this._capacityCard) return;
     this._capacityCard.removeAttribute('open');
-  }
-
-  _loadCapacity(id) {
-    try {
-      const key = `progress-card-capacity-${id}`;
-      const stored = localStorage.getItem(key);
-      if (stored !== null) {
-        const parsed = parseFloat(stored);
-        if (!isNaN(parsed)) return parsed;
-      }
-    } catch (e) {
-      console.warn('Failed to load capacity from localStorage:', e);
-    }
-    return 1.00;
-  }
-
-  _persistCapacity(id, capacity) {
-    try {
-      const key = `progress-card-capacity-${id}`;
-      localStorage.setItem(key, String(capacity));
-    } catch (e) {
-      console.warn('Failed to save capacity to localStorage:', e);
-    }
   }
 
   applyCapacityUpdate(id, capacity) {
