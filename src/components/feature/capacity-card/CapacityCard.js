@@ -82,6 +82,7 @@ class CapacityCard extends HTMLElement {
     const hasRowError = this._rows.some((r) => r && r.error === 'required');
     const today = new Date().toISOString().split('T')[0];
     const targetCompletion = this._targetCompletion || today;
+    const isTargetPastOrToday = this._isPastOrToday(targetCompletion, today);
     const capacityValue = this._calculateCapacityValue(today, targetCompletion, this._rows, this._holidays);
     const capacityLabel = capacityValue == null ? 'Capacity: TBD' : `Capacity: ${capacityValue}`;
 
@@ -93,7 +94,7 @@ class CapacityCard extends HTMLElement {
         <div class="subtitle">Capacity Planner</div>
         <div class="target-row">
           <label class="target-label" for="capacity-target-date">Target Completion:</label>
-          <input type="date" id="capacity-target-date" class="input date target" value="${this._escapeHtml(targetCompletion)}" />
+          <input type="date" id="capacity-target-date" class="input date target${isTargetPastOrToday ? ' warning' : ''}" ${isTargetPastOrToday ? 'title="Capacity calculation restricted to future target dates"' : ''} value="${this._escapeHtml(targetCompletion)}" />
         </div>
         <div class="capacity-editor${hasRowError ? ' has-error' : ''}">
           <div class="rows">
@@ -173,7 +174,8 @@ class CapacityCard extends HTMLElement {
     if (targetInput) {
       targetInput.addEventListener('change', () => {
         this._targetCompletion = targetInput.value;
-        this._updateCapacitySummary();
+        this._syncEditingRowInputs();
+        this._render();
       });
     }
 
@@ -256,6 +258,27 @@ class CapacityCard extends HTMLElement {
       error: null
     };
     this._render();
+  }
+
+  _syncEditingRowInputs() {
+    const editingRows = this.shadowRoot.querySelectorAll('.row.editing');
+    editingRows.forEach((rowEl) => {
+      const index = parseInt(rowEl.getAttribute('data-index'), 10);
+      if (Number.isNaN(index) || !this._rows[index]) return;
+      const nameInput = rowEl.querySelector('.input.name');
+      const startInput = rowEl.querySelector('.input.start');
+      const endInput = rowEl.querySelector('.input.end');
+      const name = nameInput ? nameInput.value : '';
+      const start = startInput ? startInput.value : '';
+      const end = endInput ? endInput.value : '';
+
+      this._rows[index] = {
+        ...this._rows[index],
+        name,
+        start,
+        end
+      };
+    });
   }
 
   _deleteRow(index) {
@@ -494,6 +517,13 @@ class CapacityCard extends HTMLElement {
     const t = this._dateFromStr(targetStr);
     if (!d || !t) return false;
     return d > t;
+  }
+
+  _isPastOrToday(dateStr, todayStr) {
+    const d = this._dateFromStr(dateStr);
+    const t = this._dateFromStr(todayStr);
+    if (!d || !t) return false;
+    return d <= t;
   }
 
   _escapeHtml(str) {
