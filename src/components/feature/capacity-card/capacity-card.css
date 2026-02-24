@@ -62,6 +62,20 @@
   gap: 10px;
 }
 
+.target-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.target-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0b1220;
+}
+
 .rows {
   display: flex;
   flex-direction: column;

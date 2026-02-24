@@ -14,6 +14,7 @@ class CapacityCard extends HTMLElement {
     this._onKeyDown = null;
     this._rows = [];
     this._epicId = '';
+    this._targetCompletion = '';
   }
 
   static get observedAttributes() { return ['data', 'open']; }
@@ -70,6 +71,7 @@ class CapacityCard extends HTMLElement {
     const title = parsed.title || '';
     const isEditing = this._rows.some((r) => r.editing);
     const today = new Date().toISOString().split('T')[0];
+    const targetCompletion = this._targetCompletion || today;
 
     this.shadowRoot.innerHTML = `
       <style>${this._css || ''}</style>
@@ -77,6 +79,10 @@ class CapacityCard extends HTMLElement {
       <div class="modal" role="dialog" aria-modal="true" aria-label="Capacity Planner">
         <div class="title">${this._escapeHtml(title)}</div>
         <div class="subtitle">Capacity Planner</div>
+        <div class="target-row">
+          <label class="target-label" for="capacity-target-date">Target Completion:</label>
+          <input type="date" id="capacity-target-date" class="input date target" value="${this._escapeHtml(targetCompletion)}" />
+        </div>
         <div class="capacity-editor">
           <div class="rows">
             ${this._rows.map((row, index) => {
@@ -115,8 +121,9 @@ class CapacityCard extends HTMLElement {
           `}
         </div>
         <div class="actions">
+          <button type="button" class="btn update">Update Capacity</button>
           <button type="button" class="btn cancel">Cancel</button>
-          <button type="button" class="btn primary ok">OK</button>
+          <button type="button" class="btn primary ok">Save</button>
         </div>
       </div>
     `;
@@ -230,7 +237,9 @@ class CapacityCard extends HTMLElement {
     const id = parsed.id || '';
     if (id && id !== this._epicId) {
       this._epicId = id;
-      this._rows = this._loadRows(id);
+      const loaded = this._loadRows(id);
+      this._rows = loaded.rows;
+      this._targetCompletion = loaded.targetCompletion;
     }
   }
 
@@ -266,10 +275,16 @@ class CapacityCard extends HTMLElement {
       editing: false
     }));
 
+    const targetInput = this.shadowRoot.querySelector('.input.date.target');
+    const targetValue = targetInput ? targetInput.value : today;
+    this._targetCompletion = targetValue || today;
+
     if (this._epicId) {
       try {
-        const key = `capacity-card-rows-${this._epicId}`;
-        localStorage.setItem(key, JSON.stringify(this._rows));
+        const rowsKey = `capacity-card-rows-${this._epicId}`;
+        localStorage.setItem(rowsKey, JSON.stringify(this._rows));
+        const targetKey = `capacity-card-target-${this._epicId}`;
+        localStorage.setItem(targetKey, this._targetCompletion);
       } catch (e) {
         console.warn('Failed to save capacity rows to localStorage:', e);
       }
@@ -283,21 +298,29 @@ class CapacityCard extends HTMLElement {
     try {
       const key = `capacity-card-rows-${id}`;
       const stored = localStorage.getItem(key);
+      const targetKey = `capacity-card-target-${id}`;
+      const targetStored = localStorage.getItem(targetKey);
+      const today = new Date().toISOString().split('T')[0];
+      const targetCompletion = targetStored || today;
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          return parsed.map((row) => ({
-            name: row.name || 'Developer',
-            start: row.start || new Date().toISOString().split('T')[0],
-            end: row.end || new Date().toISOString().split('T')[0],
-            editing: false
-          }));
+          return {
+            rows: parsed.map((row) => ({
+              name: row.name || 'Developer',
+              start: row.start || today,
+              end: row.end || today,
+              editing: false
+            })),
+            targetCompletion
+          };
         }
       }
+      return { rows: [], targetCompletion };
     } catch (e) {
       console.warn('Failed to load capacity rows from localStorage:', e);
     }
-    return [];
+    return { rows: [], targetCompletion: new Date().toISOString().split('T')[0] };
   }
 
   _escapeHtml(str) {
