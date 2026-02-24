@@ -39,7 +39,7 @@
  * - If projected_completion is provided, displays "Completion: <formatted date>"
  *   below the progress bar, where the date is formatted as "Friday, October 5".
  */
-import '../data-row/DataRow.js';
+import '../../presentational/data-row/DataRow.js';
 
 class ProgressCard extends HTMLElement {
   constructor() {

@@ -63,7 +63,7 @@
  *   - COMPLETE: darkblue
  *   - BLOCKED: darkred
  */
-import '../../presentational/progress-card/ProgressCard.js';
+import '../../feature/progress-card/ProgressCard.js';
 import '../../presentational/expandable-row-list/ExpandableRowList.js';
 import '../../feature/capacity-card/CapacityCard.js';
 
