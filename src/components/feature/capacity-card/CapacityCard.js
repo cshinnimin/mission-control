@@ -100,11 +100,12 @@ class CapacityCard extends HTMLElement {
               if (row.editing) {
                 const startValue = row.start || today;
                 const endValue = row.end || today;
+                const isWarning = this._isAfterDate(endValue, targetCompletion);
                 return `
                   <div class="row editing" data-index="${index}">
                     <input type="text" class="input name" placeholder="Developer" value="${this._escapeHtml(row.name || '')}" />
                     <input type="date" class="input date start" value="${this._escapeHtml(startValue)}" />
-                    <input type="date" class="input date end" value="${this._escapeHtml(endValue)}" />
+                    <input type="date" class="input date end${isWarning ? ' warning' : ''}" ${isWarning ? 'title="Dates past target completion ignored"' : ''} value="${this._escapeHtml(endValue)}" />
                     <div class="row-actions">
                       <button type="button" class="row-btn cancel" aria-label="Cancel">X</button>
                       <button type="button" class="row-btn save" aria-label="Save">✓</button>
@@ -113,11 +114,12 @@ class CapacityCard extends HTMLElement {
                 `;
               }
 
+              const isWarning = this._isAfterDate(row.end, targetCompletion);
               return `
                 <div class="row saved" data-index="${index}">
                   <div class="label name">${this._escapeHtml(row.name)}</div>
                   <div class="label date">${this._escapeHtml(row.start)}</div>
-                  <div class="label date">${this._escapeHtml(row.end)}</div>
+                  <div class="label date${isWarning ? ' warning' : ''}" ${isWarning ? 'title="Dates past target completion ignored"' : ''}>${this._escapeHtml(row.end)}</div>
                   <div class="row-actions">
                     <button type="button" class="row-btn delete" aria-label="Delete">X</button>
                   </div>
@@ -469,6 +471,13 @@ class CapacityCard extends HTMLElement {
     if (!da) return b;
     if (!db) return a;
     return da <= db ? a : b;
+  }
+
+  _isAfterDate(dateStr, targetStr) {
+    const d = this._dateFromStr(dateStr);
+    const t = this._dateFromStr(targetStr);
+    if (!d || !t) return false;
+    return d > t;
   }
 
   _escapeHtml(str) {
