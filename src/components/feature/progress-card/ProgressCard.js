@@ -158,7 +158,7 @@ class ProgressCard extends HTMLElement {
     if (decreaseBtn) {
       decreaseBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        this._capacity = Math.max(0, this._capacity - 0.25);
+        this._capacity = this._stepDownCapacity(this._capacity);
         this._updateCapacityDisplay();
         this._updateProjectedCompletion();
         this._emitCapacityChange();
@@ -168,12 +168,32 @@ class ProgressCard extends HTMLElement {
     if (increaseBtn) {
       increaseBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        this._capacity += 0.25;
+        this._capacity = this._stepUpCapacity(this._capacity);
         this._updateCapacityDisplay();
         this._updateProjectedCompletion();
         this._emitCapacityChange();
       });
     }
+  }
+
+  _stepUpCapacity(value) {
+    const step = 0.25;
+    const eps = 1e-9;
+    let next = Math.ceil((value + eps) / step) * step;
+    if (Math.abs(next - value) < eps) {
+      next = value + step;
+    }
+    return Number(next.toFixed(2));
+  }
+
+  _stepDownCapacity(value) {
+    const step = 0.25;
+    const eps = 1e-9;
+    let next = Math.floor((value - eps) / step) * step;
+    if (Math.abs(next - value) < eps) {
+      next = value - step;
+    }
+    return Math.max(0, Number(next.toFixed(2)));
   }
 
   _emitCapacityChange() {
