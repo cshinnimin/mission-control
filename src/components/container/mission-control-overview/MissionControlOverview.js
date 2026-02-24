@@ -91,6 +91,7 @@ class MissionControlOverview extends HTMLElement {
 
     // Build progress cards data
     const progressCards = epics.map(epic => {
+      const capacity = this._loadCapacity(epic.id);
       const progress = epic.total_points > 0 
         ? (epic.points_complete / epic.total_points) * 100 
         : 0;
@@ -101,6 +102,7 @@ class MissionControlOverview extends HTMLElement {
       return {
         id: epic.id,
         title: epic.name,
+        capacity: capacity,
         progress: progress,
         blocked: blocked,
         remaining_points: epic.total_points - epic.points_complete,
@@ -164,6 +166,14 @@ class MissionControlOverview extends HTMLElement {
       this._openCapacityModal(title, id, this._holidays || []);
     });
 
+    cardGrid.addEventListener('capacity-change', (e) => {
+      const id = e.detail && e.detail.id ? e.detail.id : '';
+      const capacity = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
+      if (!id || capacity == null) return;
+      this._persistCapacity(id, capacity);
+      this._applyCapacityUpdate(id, capacity);
+    });
+
     this.innerHTML = '';
     this.appendChild(cardGrid);
 
@@ -171,6 +181,18 @@ class MissionControlOverview extends HTMLElement {
     this._capacityCard = document.createElement('capacity-card');
     this._capacityCard.addEventListener('capacity-close', () => {
       this._closeCapacityModal();
+    });
+    this._capacityCard.addEventListener('capacity-updated', (e) => {
+      const id = e.detail && e.detail.id ? e.detail.id : '';
+      const capacity = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
+      if (!id || capacity == null) return;
+      this._persistCapacity(id, capacity);
+      this._applyCapacityUpdate(id, capacity);
+      this.dispatchEvent(new CustomEvent('capacity-updated', {
+        detail: { id, capacity },
+        bubbles: true,
+        composed: true
+      }));
     });
     this.appendChild(this._capacityCard);
   }
@@ -184,6 +206,40 @@ class MissionControlOverview extends HTMLElement {
   _closeCapacityModal() {
     if (!this._capacityCard) return;
     this._capacityCard.removeAttribute('open');
+  }
+
+  _applyCapacityUpdate(id, capacity) {
+    const card = this.querySelector(`progress-card[data-id="${id}"]`);
+    if (card) {
+      let raw = card.getAttribute('data') || '{}';
+      let parsed;
+      try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
+      parsed.capacity = capacity;
+      card.setAttribute('data', JSON.stringify(parsed));
+    }
+  }
+
+  _loadCapacity(id) {
+    try {
+      const key = `progress-card-capacity-${id}`;
+      const stored = localStorage.getItem(key);
+      if (stored !== null) {
+        const parsed = parseFloat(stored);
+        if (!isNaN(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to load capacity from localStorage:', e);
+    }
+    return 1.00;
+  }
+
+  _persistCapacity(id, capacity) {
+    try {
+      const key = `progress-card-capacity-${id}`;
+      localStorage.setItem(key, String(capacity));
+    } catch (e) {
+      console.warn('Failed to save capacity to localStorage:', e);
+    }
   }
 }
 

@@ -192,6 +192,14 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 8px;
+  align-items: center;
+}
+
+.update-feedback {
+  min-width: 16px;
+  color: #16a34a;
+  font-weight: 800;
+  text-align: center;
 }
 
 .btn {

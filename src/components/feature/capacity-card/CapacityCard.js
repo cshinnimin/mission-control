@@ -16,6 +16,8 @@ class CapacityCard extends HTMLElement {
     this._epicId = '';
     this._targetCompletion = '';
     this._holidays = [];
+    this._updateFeedbackTimer = null;
+    this._showUpdateFeedback = false;
   }
 
   static get observedAttributes() { return ['data', 'open']; }
@@ -26,17 +28,23 @@ class CapacityCard extends HTMLElement {
       return;
     }
     this._syncFromData();
+    if (this.hasAttribute('open')) {
+      this._reloadFromStorage();
+    }
     this._render();
   }
 
   connectedCallback() {
     this._ensureCss().then(() => {
       this._syncFromData();
+      if (this.hasAttribute('open')) {
+        this._reloadFromStorage();
+      }
       this._render();
     });
     this._onKeyDown = (e) => {
       if (e.key === 'Escape' && this.hasAttribute('open')) {
-        this._requestClose('escape');
+        this._discardChangesAndClose('escape');
       }
     };
     document.addEventListener('keydown', this._onKeyDown);
@@ -126,6 +134,7 @@ class CapacityCard extends HTMLElement {
         <div class="capacity-summary">${this._escapeHtml(capacityLabel)}</div>
         <div class="actions">
           <button type="button" class="btn update">Update Capacity</button>
+          <span class="update-feedback" aria-live="polite">${this._showUpdateFeedback ? '✓' : ''}</span>
           <button type="button" class="btn cancel">Cancel</button>
           <button type="button" class="btn primary ok">Save</button>
         </div>
@@ -134,13 +143,17 @@ class CapacityCard extends HTMLElement {
 
     const cancelBtn = this.shadowRoot.querySelector('.btn.cancel');
     const okBtn = this.shadowRoot.querySelector('.btn.ok');
+    const updateBtn = this.shadowRoot.querySelector('.btn.update');
     const backdrop = this.shadowRoot.querySelector('.backdrop');
 
     if (cancelBtn) {
-      cancelBtn.addEventListener('click', () => this._requestClose('cancel'));
+      cancelBtn.addEventListener('click', () => this._discardChangesAndClose('cancel'));
     }
     if (okBtn) {
       okBtn.addEventListener('click', () => this._saveAllRows());
+    }
+    if (updateBtn) {
+      updateBtn.addEventListener('click', () => this._updateCapacity());
     }
     if (backdrop) {
       backdrop.addEventListener('click', (e) => {
@@ -242,6 +255,12 @@ class CapacityCard extends HTMLElement {
     }));
   }
 
+  _discardChangesAndClose(action) {
+    this._reloadFromStorage();
+    this._render();
+    this._requestClose(action);
+  }
+
   _syncFromData() {
     let raw = this.getAttribute('data') || '{}';
     let parsed;
@@ -249,12 +268,16 @@ class CapacityCard extends HTMLElement {
     const id = parsed.id || '';
     const holidays = Array.isArray(parsed.holidays) ? parsed.holidays : [];
     this._holidays = holidays;
-    if (id && id !== this._epicId) {
+    if (id) {
       this._epicId = id;
-      const loaded = this._loadRows(id);
-      this._rows = loaded.rows;
-      this._targetCompletion = loaded.targetCompletion;
     }
+  }
+
+  _reloadFromStorage() {
+    if (!this._epicId) return;
+    const loaded = this._loadRows(this._epicId);
+    this._rows = loaded.rows;
+    this._targetCompletion = loaded.targetCompletion;
   }
 
   _saveAllRows() {
@@ -306,6 +329,35 @@ class CapacityCard extends HTMLElement {
 
     this._render();
     this._requestClose('ok');
+  }
+
+  _updateCapacity() {
+    const today = new Date().toISOString().split('T')[0];
+    const target = this._targetCompletion || today;
+    const capacityValue = this._calculateCapacityValue(today, target, this._rows, this._holidays);
+
+    if (capacityValue != null && this._epicId) {
+      this.dispatchEvent(new CustomEvent('capacity-updated', {
+        detail: {
+          id: this._epicId,
+          capacity: Number(capacityValue)
+        },
+        bubbles: true,
+        composed: true
+      }));
+    }
+
+    this._showUpdateFeedback = true;
+    if (this._updateFeedbackTimer) {
+      clearTimeout(this._updateFeedbackTimer);
+    }
+    this._updateFeedbackTimer = setTimeout(() => {
+      this._showUpdateFeedback = false;
+      const feedbackEl = this.shadowRoot.querySelector('.update-feedback');
+      if (feedbackEl) feedbackEl.textContent = '';
+    }, 900);
+    const feedbackEl = this.shadowRoot.querySelector('.update-feedback');
+    if (feedbackEl) feedbackEl.textContent = '✓';
   }
 
   _loadRows(id) {

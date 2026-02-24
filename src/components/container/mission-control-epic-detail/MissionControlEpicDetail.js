@@ -76,6 +76,8 @@ const STORY_STATUS_COLORS = {
 class MissionControlEpicDetail extends HTMLElement {
   constructor() {
     super();
+    this._progressCard = null;
+    this._currentEpicId = '';
   }
 
   static get observedAttributes() { return ['data']; }
@@ -148,10 +150,12 @@ class MissionControlEpicDetail extends HTMLElement {
       : 0;
     const percentComplete = Math.round(progress);
 
+    const capacity = this._loadCapacity(epic.id);
     const progressCardData = {
       id: epic.id,
       title: epic.name,
       "title-link": epic.link || '',
+      capacity: capacity,
       progress: progress,
       blocked: blocked,
       remaining_points: epic.total_points - epic.points_complete,
@@ -215,7 +219,21 @@ class MissionControlEpicDetail extends HTMLElement {
     }
     // Keep global font for the ProgressCard
     progressCard.style.fontFamily = 'var(--global-font)';
+    progressCard.addEventListener('capacity-change', (e) => {
+      const id = e.detail && e.detail.id ? e.detail.id : '';
+      const value = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
+      if (!id || value == null) return;
+      this._persistCapacity(id, value);
+      this.applyCapacityUpdate(id, value);
+      this.dispatchEvent(new CustomEvent('capacity-updated', {
+        detail: { id, capacity: value },
+        bubbles: true,
+        composed: true
+      }));
+    });
     container.appendChild(progressCard);
+    this._progressCard = progressCard;
+    this._currentEpicId = epic.id || '';
 
     // Create expandable-row-list for stories
     const stories = Array.isArray(epic.stories) ? epic.stories : [];
@@ -313,6 +331,38 @@ class MissionControlEpicDetail extends HTMLElement {
 
     this.innerHTML = '';
     this.appendChild(container);
+  }
+
+  _loadCapacity(id) {
+    try {
+      const key = `progress-card-capacity-${id}`;
+      const stored = localStorage.getItem(key);
+      if (stored !== null) {
+        const parsed = parseFloat(stored);
+        if (!isNaN(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to load capacity from localStorage:', e);
+    }
+    return 1.00;
+  }
+
+  _persistCapacity(id, capacity) {
+    try {
+      const key = `progress-card-capacity-${id}`;
+      localStorage.setItem(key, String(capacity));
+    } catch (e) {
+      console.warn('Failed to save capacity to localStorage:', e);
+    }
+  }
+
+  applyCapacityUpdate(id, capacity) {
+    if (!this._progressCard || !id || id !== this._currentEpicId) return;
+    let raw = this._progressCard.getAttribute('data') || '{}';
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
+    parsed.capacity = capacity;
+    this._progressCard.setAttribute('data', JSON.stringify(parsed));
   }
 }
 
