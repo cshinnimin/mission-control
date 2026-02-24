@@ -111,6 +111,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .capacity-label {
@@ -120,23 +121,39 @@
   white-space: nowrap;
   flex: 1;
   text-align: right;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-}
-
-.capacity-label:hover,
-.capacity-label:focus-visible {
-  text-decoration: underline;
-  outline: none;
 }
 
 .capacity-controls {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+}
+
+.capacity-controls > * {
+  flex: 0 0 auto;
+}
+
+.plan-btn {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd5f5;
+  background: #fff;
+  color: #0b1220;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.plan-btn:hover {
+  background: #f8fafc;
+}
+
+.plan-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
 
 .capacity-btn {

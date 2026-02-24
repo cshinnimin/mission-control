@@ -135,11 +135,12 @@ class ProgressCard extends HTMLElement {
         </div>
         <div class="separator"></div>
         <div class="capacity-row">
-          <button type="button" class="capacity-label" aria-label="Open capacity planner">Capacity:</button>
+          <div class="capacity-label">Capacity:</div>
           <div class="capacity-controls">
             <button class="capacity-btn decrease" aria-label="Decrease capacity">−</button>
             <span class="capacity-value">${this._capacity.toFixed(2)}</span>
             <button class="capacity-btn increase" aria-label="Increase capacity">+</button>
+            <button class="plan-btn" aria-label="Open capacity planner">Plan</button>
           </div>
         </div>
         ${formattedDate ? `<div class="projected-completion">Completion: ${this._escapeHtml(formattedDate)}</div>` : ''}
@@ -148,7 +149,7 @@ class ProgressCard extends HTMLElement {
 
     // Attach event listeners to capacity buttons
     this._attachCapacityListeners();
-    this._attachCapacityLabelListener();
+    this._attachPlanListener();
   }
 
   _attachCapacityListeners() {
@@ -208,11 +209,10 @@ class ProgressCard extends HTMLElement {
     }));
   }
 
-  _attachCapacityLabelListener() {
-    const labelBtn = this.shadowRoot.querySelector('.capacity-label');
-    if (!labelBtn) return;
-
-    const onActivate = (e) => {
+  _attachPlanListener() {
+    const planBtn = this.shadowRoot.querySelector('.plan-btn');
+    if (!planBtn) return;
+    planBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.dispatchEvent(new CustomEvent('capacity-click', {
@@ -220,13 +220,6 @@ class ProgressCard extends HTMLElement {
         bubbles: true,
         composed: true
       }));
-    };
-
-    labelBtn.addEventListener('click', onActivate);
-    labelBtn.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        onActivate(e);
-      }
     });
   }
 
