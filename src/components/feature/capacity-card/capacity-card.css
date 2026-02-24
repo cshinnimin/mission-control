@@ -76,6 +76,14 @@
   color: #0b1220;
 }
 
+.capacity-summary {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0b1220;
+}
+
 .rows {
   display: flex;
   flex-direction: column;

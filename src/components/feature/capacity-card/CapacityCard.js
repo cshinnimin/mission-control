@@ -15,6 +15,7 @@ class CapacityCard extends HTMLElement {
     this._rows = [];
     this._epicId = '';
     this._targetCompletion = '';
+    this._holidays = [];
   }
 
   static get observedAttributes() { return ['data', 'open']; }
@@ -72,6 +73,8 @@ class CapacityCard extends HTMLElement {
     const isEditing = this._rows.some((r) => r.editing);
     const today = new Date().toISOString().split('T')[0];
     const targetCompletion = this._targetCompletion || today;
+    const capacityValue = this._calculateCapacityValue(today, targetCompletion, this._rows, this._holidays);
+    const capacityLabel = capacityValue == null ? 'Capacity: TBD' : `Capacity: ${capacityValue}`;
 
     this.shadowRoot.innerHTML = `
       <style>${this._css || ''}</style>
@@ -120,6 +123,7 @@ class CapacityCard extends HTMLElement {
             </div>
           `}
         </div>
+        <div class="capacity-summary">${this._escapeHtml(capacityLabel)}</div>
         <div class="actions">
           <button type="button" class="btn update">Update Capacity</button>
           <button type="button" class="btn cancel">Cancel</button>
@@ -142,6 +146,14 @@ class CapacityCard extends HTMLElement {
       backdrop.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+      });
+    }
+
+    const targetInput = this.shadowRoot.querySelector('.input.date.target');
+    if (targetInput) {
+      targetInput.addEventListener('change', () => {
+        this._targetCompletion = targetInput.value;
+        this._updateCapacitySummary();
       });
     }
 
@@ -235,6 +247,8 @@ class CapacityCard extends HTMLElement {
     let parsed;
     try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
     const id = parsed.id || '';
+    const holidays = Array.isArray(parsed.holidays) ? parsed.holidays : [];
+    this._holidays = holidays;
     if (id && id !== this._epicId) {
       this._epicId = id;
       const loaded = this._loadRows(id);
@@ -321,6 +335,88 @@ class CapacityCard extends HTMLElement {
       console.warn('Failed to load capacity rows from localStorage:', e);
     }
     return { rows: [], targetCompletion: new Date().toISOString().split('T')[0] };
+  }
+
+  _calculateCapacityValue(todayStr, targetStr, rows, holidays = []) {
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const holidaySet = new Set((holidays || []).map((h) => this._normalizeDateStr(h)).filter(Boolean));
+    const remainingDays = this._countBusinessDaysAfter(todayStr, targetStr, holidaySet);
+    if (!remainingDays) return null;
+
+    const developerDays = rows.reduce((sum, row) => {
+      if (!row || row.editing) return sum;
+      const start = this._maxDateStr(todayStr, row.start);
+      const end = this._minDateStr(targetStr, row.end);
+      if (!start || !end) return sum;
+      const days = this._countBusinessDaysAfter(start, end, holidaySet);
+      return sum + days;
+    }, 0);
+
+    const value = developerDays / remainingDays;
+    if (!isFinite(value)) return null;
+    return value.toFixed(2);
+  }
+
+  _updateCapacitySummary() {
+    const today = new Date().toISOString().split('T')[0];
+    const target = this._targetCompletion || today;
+    const capacityValue = this._calculateCapacityValue(today, target, this._rows, this._holidays);
+    const label = capacityValue == null ? 'Capacity: TBD' : `Capacity: ${capacityValue}`;
+    const summaryEl = this.shadowRoot.querySelector('.capacity-summary');
+    if (summaryEl) summaryEl.textContent = label;
+  }
+
+  _countBusinessDaysAfter(startStr, endStr, holidaySet) {
+    const startDate = this._dateFromStr(startStr);
+    const endDate = this._dateFromStr(endStr);
+    if (!startDate || !endDate) return 0;
+    if (endDate < startDate) return 0;
+
+    let current = new Date(startDate);
+    current.setDate(current.getDate() + 1);
+
+    let count = 0;
+    while (current <= endDate) {
+      if (this._isBusinessDay(current, holidaySet)) count += 1;
+      current.setDate(current.getDate() + 1);
+    }
+    return count;
+  }
+
+  _isBusinessDay(date, holidaySet) {
+    const day = date.getDay();
+    if (day === 0 || day === 6) return false;
+    const dateStr = date.toISOString().split('T')[0];
+    return !holidaySet.has(dateStr);
+  }
+
+  _dateFromStr(str) {
+    if (!str) return null;
+    const date = new Date(str + 'T00:00:00');
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  _normalizeDateStr(str) {
+    const date = this._dateFromStr(str);
+    return date ? date.toISOString().split('T')[0] : '';
+  }
+
+  _maxDateStr(a, b) {
+    const da = this._dateFromStr(a);
+    const db = this._dateFromStr(b);
+    if (!da && !db) return '';
+    if (!da) return b;
+    if (!db) return a;
+    return da >= db ? a : b;
+  }
+
+  _minDateStr(a, b) {
+    const da = this._dateFromStr(a);
+    const db = this._dateFromStr(b);
+    if (!da && !db) return '';
+    if (!da) return b;
+    if (!db) return a;
+    return da <= db ? a : b;
   }
 
   _escapeHtml(str) {

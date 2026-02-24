@@ -87,6 +87,7 @@ class MissionControlOverview extends HTMLElement {
     }
 
     const { velocity, holidays = [], epics = [] } = parsedData;
+    this._holidays = holidays;
 
     // Build progress cards data
     const progressCards = epics.map(epic => {
@@ -160,7 +161,7 @@ class MissionControlOverview extends HTMLElement {
     cardGrid.addEventListener('capacity-click', (e) => {
       const title = e.detail && e.detail.title ? e.detail.title : '';
       const id = e.detail && e.detail.id ? e.detail.id : '';
-      this._openCapacityModal(title, id);
+      this._openCapacityModal(title, id, this._holidays || []);
     });
 
     this.innerHTML = '';
@@ -174,9 +175,9 @@ class MissionControlOverview extends HTMLElement {
     this.appendChild(this._capacityCard);
   }
 
-  _openCapacityModal(title, id) {
+  _openCapacityModal(title, id, holidays) {
     if (!this._capacityCard) return;
-    this._capacityCard.setAttribute('data', JSON.stringify({ title, id }));
+    this._capacityCard.setAttribute('data', JSON.stringify({ title, id, holidays: holidays || [] }));
     this._capacityCard.setAttribute('open', '');
   }
 
