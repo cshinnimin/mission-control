@@ -52,7 +52,10 @@
 import '../../presentational/progress-card-grid/ProgressCardGrid.js';
 import '../../presentational/data-row/DataRow.js';
 import '../../feature/capacity-card/CapacityCard.js';
-import { loadCapacity, saveCapacity } from '../../../service/storage.js';
+import { loadCapacity } from '../../../service/storage.js';
+import { openCapacityModal, closeCapacityModal } from '../../../service/capacityModal.js';
+import { getCapacityPayload, handleCapacityUpdate } from '../../../service/capacityUpdate.js';
+import { applyCapacityToProgressCard } from '../../../service/progressCardSync.js';
 
 class MissionControlOverview extends HTMLElement {
   constructor() {
@@ -162,16 +165,15 @@ class MissionControlOverview extends HTMLElement {
 
     // Listen for capacity label clicks to open capacity modal
     cardGrid.addEventListener('capacity-click', (e) => {
-      const title = e.detail && e.detail.title ? e.detail.title : '';
-      const id = e.detail && e.detail.id ? e.detail.id : '';
-      this._openCapacityModal(title, id, this._holidays || []);
+      openCapacityModal(this._capacityCard, {
+        title: e.detail && e.detail.title ? e.detail.title : '',
+        id: e.detail && e.detail.id ? e.detail.id : '',
+        holidays: this._holidays || []
+      });
     });
 
     cardGrid.addEventListener('capacity-change', (e) => {
-      const id = e.detail && e.detail.id ? e.detail.id : '';
-      const capacity = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
-      if (!id || capacity == null) return;
-      saveCapacity(id, capacity);
+      handleCapacityUpdate(this, getCapacityPayload(e.detail), { dispatchEvent: false });
     });
 
     this.innerHTML = '';
@@ -180,46 +182,16 @@ class MissionControlOverview extends HTMLElement {
     // Create and append capacity modal
     this._capacityCard = document.createElement('capacity-card');
     this._capacityCard.addEventListener('capacity-close', () => {
-      this._closeCapacityModal();
+      closeCapacityModal(this._capacityCard);
     });
     this._capacityCard.addEventListener('capacity-updated', (e) => {
-      const id = e.detail && e.detail.id ? e.detail.id : '';
-      const capacity = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
-      if (!id || capacity == null) return;
-      saveCapacity(id, capacity);
-      this._applyCapacityUpdate(id, capacity);
-      this.dispatchEvent(new CustomEvent('capacity-updated', {
-        detail: { id, capacity },
-        bubbles: true,
-        composed: true
-      }));
+      const payload = getCapacityPayload(e.detail);
+      handleCapacityUpdate(this, payload, { dispatchEvent: true });
+      applyCapacityToProgressCard(this, payload.id, payload.capacity);
     });
     this.appendChild(this._capacityCard);
   }
 
-  _openCapacityModal(title, id, holidays) {
-    if (!this._capacityCard) return;
-    this._capacityCard.setAttribute('data', JSON.stringify({ title, id, holidays: holidays || [] }));
-    this._capacityCard.setAttribute('open', '');
-  }
-
-  _closeCapacityModal() {
-    if (!this._capacityCard) return;
-    this._capacityCard.removeAttribute('open');
-  }
-
-  _applyCapacityUpdate(id, capacity) {
-    const card = this.querySelector(`progress-card[data-id="${id}"]`);
-    if (card) {
-      let raw = card.getAttribute('data') || '{}';
-      let parsed;
-      try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
-      parsed.capacity = capacity;
-      card.setAttribute('data', JSON.stringify(parsed));
-    }
-  }
-
-  
 }
 
 customElements.define('mission-control-overview', MissionControlOverview);

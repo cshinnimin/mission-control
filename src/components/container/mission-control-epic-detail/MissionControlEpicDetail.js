@@ -66,7 +66,10 @@
 import '../../feature/progress-card/ProgressCard.js';
 import '../../presentational/expandable-row-list/ExpandableRowList.js';
 import '../../feature/capacity-card/CapacityCard.js';
-import { loadCapacity, saveCapacity } from '../../../service/storage.js';
+import { loadCapacity } from '../../../service/storage.js';
+import { openCapacityModal, closeCapacityModal } from '../../../service/capacityModal.js';
+import { getCapacityPayload, handleCapacityUpdate } from '../../../service/capacityUpdate.js';
+import { applyCapacityToProgressCard } from '../../../service/progressCardSync.js';
 
 // Status color constants for easier maintenance
 const STORY_STATUS_COLORS = {
@@ -223,21 +226,16 @@ class MissionControlEpicDetail extends HTMLElement {
     // Keep global font for the ProgressCard
     progressCard.style.fontFamily = 'var(--global-font)';
     progressCard.addEventListener('capacity-click', (e) => {
-      const title = e.detail && e.detail.title ? e.detail.title : '';
-      const id = e.detail && e.detail.id ? e.detail.id : '';
-      this._openCapacityModal(title, id, holidays || []);
+      openCapacityModal(this._capacityCard, {
+        title: e.detail && e.detail.title ? e.detail.title : '',
+        id: e.detail && e.detail.id ? e.detail.id : '',
+        holidays: holidays || []
+      });
     });
     progressCard.addEventListener('capacity-change', (e) => {
-      const id = e.detail && e.detail.id ? e.detail.id : '';
-      const value = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
-      if (!id || value == null) return;
-      saveCapacity(id, value);
-      this.applyCapacityUpdate(id, value);
-      this.dispatchEvent(new CustomEvent('capacity-updated', {
-        detail: { id, capacity: value },
-        bubbles: true,
-        composed: true
-      }));
+      const payload = getCapacityPayload(e.detail);
+      handleCapacityUpdate(this, payload, { dispatchEvent: true });
+      applyCapacityToProgressCard(this, payload.id, payload.capacity);
     });
     container.appendChild(progressCard);
     this._progressCard = progressCard;
@@ -245,19 +243,12 @@ class MissionControlEpicDetail extends HTMLElement {
 
     this._capacityCard = document.createElement('capacity-card');
     this._capacityCard.addEventListener('capacity-close', () => {
-      this._closeCapacityModal();
+      closeCapacityModal(this._capacityCard);
     });
     this._capacityCard.addEventListener('capacity-updated', (e) => {
-      const id = e.detail && e.detail.id ? e.detail.id : '';
-      const value = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
-      if (!id || value == null) return;
-      saveCapacity(id, value);
-      this.applyCapacityUpdate(id, value);
-      this.dispatchEvent(new CustomEvent('capacity-updated', {
-        detail: { id, capacity: value },
-        bubbles: true,
-        composed: true
-      }));
+      const payload = getCapacityPayload(e.detail);
+      handleCapacityUpdate(this, payload, { dispatchEvent: true });
+      applyCapacityToProgressCard(this, payload.id, payload.capacity);
     });
     container.appendChild(this._capacityCard);
 
@@ -359,25 +350,7 @@ class MissionControlEpicDetail extends HTMLElement {
     this.appendChild(container);
   }
 
-  _openCapacityModal(title, id, holidays) {
-    if (!this._capacityCard) return;
-    this._capacityCard.setAttribute('data', JSON.stringify({ title, id, holidays: holidays || [] }));
-    this._capacityCard.setAttribute('open', '');
-  }
-
-  _closeCapacityModal() {
-    if (!this._capacityCard) return;
-    this._capacityCard.removeAttribute('open');
-  }
-
-  applyCapacityUpdate(id, capacity) {
-    if (!this._progressCard || !id || id !== this._currentEpicId) return;
-    let raw = this._progressCard.getAttribute('data') || '{}';
-    let parsed;
-    try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
-    parsed.capacity = capacity;
-    this._progressCard.setAttribute('data', JSON.stringify(parsed));
-  }
+  
 }
 
 customElements.define('mission-control-epic-detail', MissionControlEpicDetail);
