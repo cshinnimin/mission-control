@@ -5,6 +5,7 @@
  * <capacity-card data='{"title":"Epic Name"}' open></capacity-card>
  */
 class CapacityCard extends HTMLElement {
+  // Initialize component state and shadow DOM. Runs when the component is constructed.
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -19,14 +20,14 @@ class CapacityCard extends HTMLElement {
     this._updateFeedbackTimer = null;
     this._showUpdateFeedback = false;
     this._confirmOpen = false;
-    this._hasUpdatedCapacity = false;
-    this._lastUpdateSnapshot = '';
-    this._lastSavedSnapshot = '';
-    this._lastCapacityValueKey = '';
+    this._baselineSnapshot = '';
+    this._baselineCapacityKey = '';
   }
 
+  // Observe attribute changes to sync and re-render. Triggered when `data` or `open` attributes change.
   static get observedAttributes() { return ['data', 'open']; }
 
+  // React to attribute updates and refresh state/UI. Runs when `data` or `open` changes.
   attributeChangedCallback() {
     if (!this._cssLoaded) {
       this._pendingDataChange = true;
@@ -39,6 +40,7 @@ class CapacityCard extends HTMLElement {
     this._render();
   }
 
+  // Initialize styles, state, and global key handling. Runs when the element is attached to the DOM.
   connectedCallback() {
     this._ensureCss().then(() => {
       this._syncFromData();
@@ -55,6 +57,7 @@ class CapacityCard extends HTMLElement {
     document.addEventListener('keydown', this._onKeyDown);
   }
 
+  // Clean up listeners when the component is removed from the DOM.
   disconnectedCallback() {
     if (this._onKeyDown) {
       document.removeEventListener('keydown', this._onKeyDown);
@@ -62,6 +65,7 @@ class CapacityCard extends HTMLElement {
     }
   }
 
+  // Load component CSS once and then render. Called during initial attach.
   async _ensureCss() {
     if (this._cssLoaded) return;
     try {
@@ -78,6 +82,7 @@ class CapacityCard extends HTMLElement {
     }
   }
 
+  // Render the modal UI, row editor, warnings, and action buttons. Called after state changes.
   _render() {
     let raw = this.getAttribute('data') || '{}';
     let parsed;
@@ -247,6 +252,7 @@ class CapacityCard extends HTMLElement {
     });
   }
 
+  // Add a new editable row with default values. Invoked when the user presses the "+" button at the bottom-right of the rows area.
   _startNewRow() {
     const today = this._todayLocalStr();
     this._rows.push({
@@ -259,6 +265,7 @@ class CapacityCard extends HTMLElement {
     this._render();
   }
 
+  // Remove a pending row without saving. Invoked when the user clicks the row-level "X" while editing.
   _cancelRow(index) {
     const row = this._rows[index];
     if (!row || !row.editing) return;
@@ -266,6 +273,8 @@ class CapacityCard extends HTMLElement {
     this._render();
   }
 
+  // Validate and save a single row out of edit mode. Invoked when the user clicks the row-level checkmark.
+  // If the Developer name is empty, shows the inline "Required" validation.
   _saveRow(index) {
     const row = this._rows[index];
     if (!row || !row.editing) return;
@@ -300,6 +309,7 @@ class CapacityCard extends HTMLElement {
     this._render();
   }
 
+  // Sync DOM input values into row state without saving. Used before re-rendering so edits aren't lost.
   _syncEditingRowInputs() {
     const editingRows = this.shadowRoot.querySelectorAll('.row.editing');
     editingRows.forEach((rowEl) => {
@@ -321,12 +331,14 @@ class CapacityCard extends HTMLElement {
     });
   }
 
+  // Delete a saved row. Invoked when the user clicks the row-level "X" for a saved row.
   _deleteRow(index) {
     if (index < 0 || index >= this._rows.length) return;
     this._rows.splice(index, 1);
     this._render();
   }
 
+  // Close the modal and emit a close event. Used by Cancel or Save flows to exit.
   _requestClose(action) {
     this.removeAttribute('open');
     this.dispatchEvent(new CustomEvent('capacity-close', {
@@ -336,12 +348,14 @@ class CapacityCard extends HTMLElement {
     }));
   }
 
+  // Revert in-memory edits and close the modal. Invoked when the user clicks Cancel or presses Escape.
   _discardChangesAndClose(action) {
     this._reloadFromStorage();
     this._render();
     this._requestClose(action);
   }
 
+  // Read epic id and holidays from the data attribute. Invoked on `data` attribute updates.
   _syncFromData() {
     let raw = this.getAttribute('data') || '{}';
     let parsed;
@@ -354,18 +368,18 @@ class CapacityCard extends HTMLElement {
     }
   }
 
+  // Load saved rows/target for the current epic. Invoked when opening the modal to show persisted state.
   _reloadFromStorage() {
     if (!this._epicId) return;
     const loaded = this._loadRows(this._epicId);
     this._rows = loaded.rows;
     this._targetCompletion = loaded.targetCompletion;
     this._confirmOpen = false;
-    this._hasUpdatedCapacity = false;
-    this._lastUpdateSnapshot = '';
-    this._lastSavedSnapshot = this._getSnapshotFromState();
-    this._lastCapacityValueKey = this._getCurrentCapacityValueKey();
+    this._baselineSnapshot = this._getSnapshotFromState();
+    this._baselineCapacityKey = this._getCapacityValueKey();
   }
 
+  // Persist rows/target, optionally update capacity, then close. Invoked by Save or the confirmation modal choices.
   _saveAllRows(withUpdate = false) {
     const today = this._todayLocalStr();
 
@@ -417,13 +431,14 @@ class CapacityCard extends HTMLElement {
       this._updateCapacity();
     }
 
-    this._lastSavedSnapshot = this._getSnapshotFromState();
-    this._lastCapacityValueKey = this._getCurrentCapacityValueKey();
+    this._baselineSnapshot = this._getSnapshotFromState();
+    this._baselineCapacityKey = this._getCapacityValueKey();
 
     this._render();
     this._requestClose('ok');
   }
 
+  // Dispatch capacity update and update baselines. Invoked when the user clicks "Update Capacity" or chooses "Save With Update".
   _updateCapacity() {
     this._syncEditingRowInputs();
     const targetInput = this.shadowRoot.querySelector('.input.date.target');
@@ -445,9 +460,8 @@ class CapacityCard extends HTMLElement {
       }));
     }
 
-    this._hasUpdatedCapacity = true;
-    this._lastUpdateSnapshot = this._getSnapshot();
-    this._lastCapacityValueKey = this._normalizeCapacityValue(capacityValue);
+    this._baselineSnapshot = this._getSnapshot();
+    this._baselineCapacityKey = this._normalizeCapacityValue(capacityValue);
 
     this._showUpdateFeedback = true;
     if (this._updateFeedbackTimer) {
@@ -462,6 +476,7 @@ class CapacityCard extends HTMLElement {
     if (feedbackEl) feedbackEl.textContent = '✓';
   }
 
+  // Handle Save click with optional confirmation flow. Invoked when the user clicks "Save".
   _handleSaveClick() {
     this._syncEditingRowInputs();
     if (this._shouldConfirmSave()) {
@@ -472,18 +487,17 @@ class CapacityCard extends HTMLElement {
     this._saveAllRows(false);
   }
 
+  // Determine whether confirmation is required before saving. Used to decide if the warning modal should appear.
   _shouldConfirmSave() {
     const snapshot = this._getSnapshot();
-    const capacityKey = this._getCurrentCapacityValueKey();
-    if (this._lastCapacityValueKey && capacityKey === this._lastCapacityValueKey) {
+    const capacityKey = this._getCapacityValueKey();
+    if (this._baselineCapacityKey && capacityKey === this._baselineCapacityKey) {
       return false;
     }
-    if (this._hasUpdatedCapacity) {
-      return this._lastUpdateSnapshot && snapshot !== this._lastUpdateSnapshot;
-    }
-    return this._lastSavedSnapshot && snapshot !== this._lastSavedSnapshot;
+    return this._baselineSnapshot && snapshot !== this._baselineSnapshot;
   }
 
+  // Snapshot current editable state including in-progress inputs. Used to detect changes since last baseline.
   _getSnapshot() {
     const today = this._todayLocalStr();
     const targetInput = this.shadowRoot.querySelector('.input.date.target');
@@ -496,6 +510,7 @@ class CapacityCard extends HTMLElement {
     return JSON.stringify({ target, rows });
   }
 
+  // Snapshot current stored state from component fields. Used as the baseline after load or save.
   _getSnapshotFromState() {
     const today = this._todayLocalStr();
     const target = this._targetCompletion || today;
@@ -507,18 +522,21 @@ class CapacityCard extends HTMLElement {
     return JSON.stringify({ target, rows });
   }
 
-  _getCurrentCapacityValueKey() {
+  // Compute normalized capacity value for comparison. Used to determine if capacity calculation changed.
+  _getCapacityValueKey() {
     const today = this._todayLocalStr();
     const target = this._targetCompletion || today;
     const value = this._calculateCapacityValue(today, target, this._rows, this._holidays);
     return this._normalizeCapacityValue(value);
   }
 
+  // Normalize capacity for stable comparison. Keeps comparisons consistent to two decimals.
   _normalizeCapacityValue(value) {
     if (value == null || !isFinite(Number(value))) return 'null';
     return Number(value).toFixed(2);
   }
 
+  // Load rows and target completion from storage for an epic. Used when opening the modal or switching epics.
   _loadRows(id) {
     try {
       const key = `capacity-card-rows-${id}`;
@@ -548,6 +566,7 @@ class CapacityCard extends HTMLElement {
     return { rows: [], targetCompletion: this._todayLocalStr() };
   }
 
+  // Calculate capacity ratio based on remaining days and developer days. Used for the summary and Update Capacity.
   _calculateCapacityValue(todayStr, targetStr, rows, holidays = []) {
     if (!Array.isArray(rows) || rows.length === 0) return null;
     const holidaySet = new Set((holidays || []).map((h) => this._normalizeDateStr(h)).filter(Boolean));
@@ -568,6 +587,7 @@ class CapacityCard extends HTMLElement {
     return value.toFixed(2);
   }
 
+  // Update the capacity summary label in the UI. Used after target date changes to refresh the label.
   _updateCapacitySummary() {
     const today = this._todayLocalStr();
     const target = this._targetCompletion || today;
@@ -577,6 +597,7 @@ class CapacityCard extends HTMLElement {
     if (summaryEl) summaryEl.textContent = label;
   }
 
+  // Count business days starting the day after startStr through endStr. Core helper for capacity math.
   _countBusinessDaysAfter(startStr, endStr, holidaySet) {
     const startDate = this._dateFromStr(startStr);
     const endDate = this._dateFromStr(endStr);
@@ -594,6 +615,7 @@ class CapacityCard extends HTMLElement {
     return count;
   }
 
+  // Determine if a given date is a business day (excluding weekends/holidays).
   _isBusinessDay(date, holidaySet) {
     const day = date.getDay();
     if (day === 0 || day === 6) return false;
@@ -601,21 +623,25 @@ class CapacityCard extends HTMLElement {
     return !holidaySet.has(dateStr);
   }
 
+  // Parse a YYYY-MM-DD string into a Date for local date math.
   _dateFromStr(str) {
     if (!str) return null;
     const date = new Date(str + 'T00:00:00');
     return isNaN(date.getTime()) ? null : date;
   }
 
+  // Normalize any date string into local YYYY-MM-DD for consistent comparisons.
   _normalizeDateStr(str) {
     const date = this._dateFromStr(str);
     return date ? this._localDateStr(date) : '';
   }
 
+  // Get today's local date string (avoids UTC date shifts).
   _todayLocalStr() {
     return this._localDateStr(new Date());
   }
 
+  // Format a Date object as local YYYY-MM-DD (used for comparisons and storage keys).
   _localDateStr(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -623,6 +649,7 @@ class CapacityCard extends HTMLElement {
     return `${y}-${m}-${d}`;
   }
 
+  // Return the later of two date strings (used to clamp ranges to today/target).
   _maxDateStr(a, b) {
     const da = this._dateFromStr(a);
     const db = this._dateFromStr(b);
@@ -632,6 +659,7 @@ class CapacityCard extends HTMLElement {
     return da >= db ? a : b;
   }
 
+  // Return the earlier of two date strings (used to clamp ranges to today/target).
   _minDateStr(a, b) {
     const da = this._dateFromStr(a);
     const db = this._dateFromStr(b);
@@ -641,6 +669,7 @@ class CapacityCard extends HTMLElement {
     return da <= db ? a : b;
   }
 
+  // Check if dateStr is strictly after targetStr (used for end-date warning highlight).
   _isAfterDate(dateStr, targetStr) {
     const d = this._dateFromStr(dateStr);
     const t = this._dateFromStr(targetStr);
@@ -648,6 +677,7 @@ class CapacityCard extends HTMLElement {
     return d > t;
   }
 
+  // Check if dateStr is today or in the past (used for target-date warning highlight).
   _isPastOrToday(dateStr, todayStr) {
     const d = this._dateFromStr(dateStr);
     const t = this._dateFromStr(todayStr);
@@ -655,6 +685,7 @@ class CapacityCard extends HTMLElement {
     return d <= t;
   }
 
+  // Escape HTML to safely render text content in the template.
   _escapeHtml(str) {
     if (str == null) return '';
     return String(str)
