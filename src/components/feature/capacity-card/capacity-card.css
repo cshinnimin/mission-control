@@ -52,6 +52,119 @@
   font-size: 14px;
 }
 
+.capacity-editor {
+  border: 1px dashed #cbd5f5;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr 0.9fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.input {
+  border: 1px solid #cbd5f5;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  background: #fff;
+  color: #0b1220;
+}
+
+.label {
+  font-size: 13px;
+  color: #0b1220;
+  font-weight: 600;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.row-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #0b1220;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row-btn.save {
+  background: #22c55e;
+  color: #fff;
+}
+
+.row-btn.delete,
+.row-btn.cancel {
+  background: #ef4444;
+  color: #fff;
+}
+
+.add-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.capacity-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.capacity-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 3px 6px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
+.capacity-btn:active {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 0 1px 2px rgba(59, 130, 246, 0.3);
+  transform: translateY(0);
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

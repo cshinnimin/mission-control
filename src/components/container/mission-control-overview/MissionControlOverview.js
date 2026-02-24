@@ -159,7 +159,8 @@ class MissionControlOverview extends HTMLElement {
     // Listen for capacity label clicks to open capacity modal
     cardGrid.addEventListener('capacity-click', (e) => {
       const title = e.detail && e.detail.title ? e.detail.title : '';
-      this._openCapacityModal(title);
+      const id = e.detail && e.detail.id ? e.detail.id : '';
+      this._openCapacityModal(title, id);
     });
 
     this.innerHTML = '';
@@ -173,9 +174,9 @@ class MissionControlOverview extends HTMLElement {
     this.appendChild(this._capacityCard);
   }
 
-  _openCapacityModal(title) {
+  _openCapacityModal(title, id) {
     if (!this._capacityCard) return;
-    this._capacityCard.setAttribute('data', JSON.stringify({ title }));
+    this._capacityCard.setAttribute('data', JSON.stringify({ title, id }));
     this._capacityCard.setAttribute('open', '');
   }
 
