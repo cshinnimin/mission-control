@@ -18,6 +18,11 @@ class CapacityCard extends HTMLElement {
     this._holidays = [];
     this._updateFeedbackTimer = null;
     this._showUpdateFeedback = false;
+    this._confirmOpen = false;
+    this._hasUpdatedCapacity = false;
+    this._lastUpdateSnapshot = '';
+    this._lastSavedSnapshot = '';
+    this._lastCapacityValueKey = '';
   }
 
   static get observedAttributes() { return ['data', 'open']; }
@@ -147,6 +152,17 @@ class CapacityCard extends HTMLElement {
           <button type="button" class="btn primary ok">Save</button>
         </div>
       </div>
+      ${this._confirmOpen ? `
+        <div class="confirm-backdrop" aria-hidden="true"></div>
+        <div class="confirm-modal" role="dialog" aria-modal="true" aria-label="Confirm save">
+          <div class="confirm-title">There have been changes since the capacity has updated. What do you wish to do?</div>
+          <div class="confirm-actions">
+            <button type="button" class="btn confirm-cancel">Cancel</button>
+            <button type="button" class="btn confirm-save">Save Without Update</button>
+            <button type="button" class="btn primary confirm-save-update">Save With Update</button>
+          </div>
+        </div>
+      ` : ''}
     `;
 
     const cancelBtn = this.shadowRoot.querySelector('.btn.cancel');
@@ -158,7 +174,7 @@ class CapacityCard extends HTMLElement {
       cancelBtn.addEventListener('click', () => this._discardChangesAndClose('cancel'));
     }
     if (okBtn) {
-      okBtn.addEventListener('click', () => this._saveAllRows());
+      okBtn.addEventListener('click', () => this._handleSaveClick());
     }
     if (updateBtn) {
       updateBtn.addEventListener('click', () => this._updateCapacity());
@@ -177,6 +193,30 @@ class CapacityCard extends HTMLElement {
         this._syncEditingRowInputs();
         this._render();
       });
+    }
+
+    if (this._confirmOpen) {
+      const confirmCancel = this.shadowRoot.querySelector('.confirm-cancel');
+      const confirmSave = this.shadowRoot.querySelector('.confirm-save');
+      const confirmSaveUpdate = this.shadowRoot.querySelector('.confirm-save-update');
+      if (confirmCancel) {
+        confirmCancel.addEventListener('click', () => {
+          this._confirmOpen = false;
+          this._render();
+        });
+      }
+      if (confirmSave) {
+        confirmSave.addEventListener('click', () => {
+          this._confirmOpen = false;
+          this._saveAllRows(false);
+        });
+      }
+      if (confirmSaveUpdate) {
+        confirmSaveUpdate.addEventListener('click', () => {
+          this._confirmOpen = false;
+          this._saveAllRows(true);
+        });
+      }
     }
 
     const addBtn = this.shadowRoot.querySelector('.capacity-btn.add');
@@ -319,9 +359,14 @@ class CapacityCard extends HTMLElement {
     const loaded = this._loadRows(this._epicId);
     this._rows = loaded.rows;
     this._targetCompletion = loaded.targetCompletion;
+    this._confirmOpen = false;
+    this._hasUpdatedCapacity = false;
+    this._lastUpdateSnapshot = '';
+    this._lastSavedSnapshot = this._getSnapshotFromState();
+    this._lastCapacityValueKey = this._getCurrentCapacityValueKey();
   }
 
-  _saveAllRows() {
+  _saveAllRows(withUpdate = false) {
     const today = this._todayLocalStr();
 
     const merged = this._rows.map((row, index) => {
@@ -368,11 +413,23 @@ class CapacityCard extends HTMLElement {
       }
     }
 
+    if (withUpdate) {
+      this._updateCapacity();
+    }
+
+    this._lastSavedSnapshot = this._getSnapshotFromState();
+    this._lastCapacityValueKey = this._getCurrentCapacityValueKey();
+
     this._render();
     this._requestClose('ok');
   }
 
   _updateCapacity() {
+    this._syncEditingRowInputs();
+    const targetInput = this.shadowRoot.querySelector('.input.date.target');
+    if (targetInput && targetInput.value) {
+      this._targetCompletion = targetInput.value;
+    }
     const today = this._todayLocalStr();
     const target = this._targetCompletion || today;
     const capacityValue = this._calculateCapacityValue(today, target, this._rows, this._holidays);
@@ -388,6 +445,10 @@ class CapacityCard extends HTMLElement {
       }));
     }
 
+    this._hasUpdatedCapacity = true;
+    this._lastUpdateSnapshot = this._getSnapshot();
+    this._lastCapacityValueKey = this._normalizeCapacityValue(capacityValue);
+
     this._showUpdateFeedback = true;
     if (this._updateFeedbackTimer) {
       clearTimeout(this._updateFeedbackTimer);
@@ -399,6 +460,63 @@ class CapacityCard extends HTMLElement {
     }, 900);
     const feedbackEl = this.shadowRoot.querySelector('.update-feedback');
     if (feedbackEl) feedbackEl.textContent = '✓';
+  }
+
+  _handleSaveClick() {
+    this._syncEditingRowInputs();
+    if (this._shouldConfirmSave()) {
+      this._confirmOpen = true;
+      this._render();
+      return;
+    }
+    this._saveAllRows(false);
+  }
+
+  _shouldConfirmSave() {
+    const snapshot = this._getSnapshot();
+    const capacityKey = this._getCurrentCapacityValueKey();
+    if (this._lastCapacityValueKey && capacityKey === this._lastCapacityValueKey) {
+      return false;
+    }
+    if (this._hasUpdatedCapacity) {
+      return this._lastUpdateSnapshot && snapshot !== this._lastUpdateSnapshot;
+    }
+    return this._lastSavedSnapshot && snapshot !== this._lastSavedSnapshot;
+  }
+
+  _getSnapshot() {
+    const today = this._todayLocalStr();
+    const targetInput = this.shadowRoot.querySelector('.input.date.target');
+    const target = targetInput ? targetInput.value : (this._targetCompletion || today);
+    const rows = this._rows.map((row) => ({
+      name: row.name || '',
+      start: row.start || '',
+      end: row.end || ''
+    }));
+    return JSON.stringify({ target, rows });
+  }
+
+  _getSnapshotFromState() {
+    const today = this._todayLocalStr();
+    const target = this._targetCompletion || today;
+    const rows = this._rows.map((row) => ({
+      name: row.name || '',
+      start: row.start || '',
+      end: row.end || ''
+    }));
+    return JSON.stringify({ target, rows });
+  }
+
+  _getCurrentCapacityValueKey() {
+    const today = this._todayLocalStr();
+    const target = this._targetCompletion || today;
+    const value = this._calculateCapacityValue(today, target, this._rows, this._holidays);
+    return this._normalizeCapacityValue(value);
+  }
+
+  _normalizeCapacityValue(value) {
+    if (value == null || !isFinite(Number(value))) return 'null';
+    return Number(value).toFixed(2);
   }
 
   _loadRows(id) {
