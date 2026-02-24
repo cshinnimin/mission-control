@@ -80,7 +80,7 @@ class CapacityCard extends HTMLElement {
     const title = parsed.title || '';
     const isEditing = this._rows.some((r) => r.editing);
     const hasRowError = this._rows.some((r) => r && r.error === 'required');
-    const today = new Date().toISOString().split('T')[0];
+    const today = this._todayLocalStr();
     const targetCompletion = this._targetCompletion || today;
     const isTargetPastOrToday = this._isPastOrToday(targetCompletion, today);
     const capacityValue = this._calculateCapacityValue(today, targetCompletion, this._rows, this._holidays);
@@ -208,7 +208,7 @@ class CapacityCard extends HTMLElement {
   }
 
   _startNewRow() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this._todayLocalStr();
     this._rows.push({
       name: '',
       start: today,
@@ -252,8 +252,8 @@ class CapacityCard extends HTMLElement {
 
     this._rows[index] = {
       name: name,
-      start: start || new Date().toISOString().split('T')[0],
-      end: end || new Date().toISOString().split('T')[0],
+      start: start || this._todayLocalStr(),
+      end: end || this._todayLocalStr(),
       editing: false,
       error: null
     };
@@ -322,7 +322,7 @@ class CapacityCard extends HTMLElement {
   }
 
   _saveAllRows() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this._todayLocalStr();
 
     const merged = this._rows.map((row, index) => {
       if (!row.editing) return row;
@@ -373,7 +373,7 @@ class CapacityCard extends HTMLElement {
   }
 
   _updateCapacity() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this._todayLocalStr();
     const target = this._targetCompletion || today;
     const capacityValue = this._calculateCapacityValue(today, target, this._rows, this._holidays);
 
@@ -407,7 +407,7 @@ class CapacityCard extends HTMLElement {
       const stored = localStorage.getItem(key);
       const targetKey = `capacity-card-target-${id}`;
       const targetStored = localStorage.getItem(targetKey);
-      const today = new Date().toISOString().split('T')[0];
+      const today = this._todayLocalStr();
       const targetCompletion = targetStored || today;
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -427,7 +427,7 @@ class CapacityCard extends HTMLElement {
     } catch (e) {
       console.warn('Failed to load capacity rows from localStorage:', e);
     }
-    return { rows: [], targetCompletion: new Date().toISOString().split('T')[0] };
+    return { rows: [], targetCompletion: this._todayLocalStr() };
   }
 
   _calculateCapacityValue(todayStr, targetStr, rows, holidays = []) {
@@ -451,7 +451,7 @@ class CapacityCard extends HTMLElement {
   }
 
   _updateCapacitySummary() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = this._todayLocalStr();
     const target = this._targetCompletion || today;
     const capacityValue = this._calculateCapacityValue(today, target, this._rows, this._holidays);
     const label = capacityValue == null ? 'Capacity: TBD' : `Capacity: ${capacityValue}`;
@@ -479,7 +479,7 @@ class CapacityCard extends HTMLElement {
   _isBusinessDay(date, holidaySet) {
     const day = date.getDay();
     if (day === 0 || day === 6) return false;
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = this._localDateStr(date);
     return !holidaySet.has(dateStr);
   }
 
@@ -491,7 +491,18 @@ class CapacityCard extends HTMLElement {
 
   _normalizeDateStr(str) {
     const date = this._dateFromStr(str);
-    return date ? date.toISOString().split('T')[0] : '';
+    return date ? this._localDateStr(date) : '';
+  }
+
+  _todayLocalStr() {
+    return this._localDateStr(new Date());
+  }
+
+  _localDateStr(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   _maxDateStr(a, b) {
