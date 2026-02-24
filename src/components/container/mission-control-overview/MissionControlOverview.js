@@ -51,10 +51,16 @@
  */
 import '../../presentational/progress-card-grid/ProgressCardGrid.js';
 import '../../presentational/data-row/DataRow.js';
+import '../../feature/capacity-card/CapacityCard.js';
+import { loadCapacity } from '../../../service/storage.js';
+import { openCapacityModal, closeCapacityModal } from '../../../service/capacityModal.js';
+import { getCapacityPayload, handleCapacityUpdate } from '../../../service/capacityUpdate.js';
+import { applyCapacityToProgressCard } from '../../../service/progressCardSync.js';
 
 class MissionControlOverview extends HTMLElement {
   constructor() {
     super();
+    this._capacityCard = null;
   }
 
   static get observedAttributes() { return ['data']; }
@@ -85,9 +91,11 @@ class MissionControlOverview extends HTMLElement {
     }
 
     const { velocity, holidays = [], epics = [] } = parsedData;
+    this._holidays = holidays;
 
     // Build progress cards data
     const progressCards = epics.map(epic => {
+      const capacity = loadCapacity(epic.id, 1.0);
       const progress = epic.total_points > 0 
         ? (epic.points_complete / epic.total_points) * 100 
         : 0;
@@ -98,6 +106,7 @@ class MissionControlOverview extends HTMLElement {
       return {
         id: epic.id,
         title: epic.name,
+        capacity: capacity,
         progress: progress,
         blocked: blocked,
         remaining_points: epic.total_points - epic.points_complete,
@@ -154,9 +163,35 @@ class MissionControlOverview extends HTMLElement {
       }));
     });
 
+    // Listen for capacity label clicks to open capacity modal
+    cardGrid.addEventListener('capacity-click', (e) => {
+      openCapacityModal(this._capacityCard, {
+        title: e.detail && e.detail.title ? e.detail.title : '',
+        id: e.detail && e.detail.id ? e.detail.id : '',
+        holidays: this._holidays || []
+      });
+    });
+
+    cardGrid.addEventListener('capacity-change', (e) => {
+      handleCapacityUpdate(this, getCapacityPayload(e.detail), { dispatchEvent: false });
+    });
+
     this.innerHTML = '';
     this.appendChild(cardGrid);
+
+    // Create and append capacity modal
+    this._capacityCard = document.createElement('capacity-card');
+    this._capacityCard.addEventListener('capacity-close', () => {
+      closeCapacityModal(this._capacityCard);
+    });
+    this._capacityCard.addEventListener('capacity-updated', (e) => {
+      const payload = getCapacityPayload(e.detail);
+      handleCapacityUpdate(this, payload, { dispatchEvent: true });
+      applyCapacityToProgressCard(this, payload.id, payload.capacity);
+    });
+    this.appendChild(this._capacityCard);
   }
+
 }
 
 customElements.define('mission-control-overview', MissionControlOverview);

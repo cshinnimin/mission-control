@@ -9,7 +9,7 @@
  *   "progress-cards": [ { ...progress-card payload... }, ... ]
  * }
  */
-import '../progress-card/ProgressCard.js';
+import '../../feature/progress-card/ProgressCard.js';
 
 class ProgressCardGrid extends HTMLElement {
   constructor() {

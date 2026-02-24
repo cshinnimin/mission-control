@@ -63,8 +63,13 @@
  *   - COMPLETE: darkblue
  *   - BLOCKED: darkred
  */
-import '../../presentational/progress-card/ProgressCard.js';
+import '../../feature/progress-card/ProgressCard.js';
 import '../../presentational/expandable-row-list/ExpandableRowList.js';
+import '../../feature/capacity-card/CapacityCard.js';
+import { loadCapacity } from '../../../service/storage.js';
+import { openCapacityModal, closeCapacityModal } from '../../../service/capacityModal.js';
+import { getCapacityPayload, handleCapacityUpdate } from '../../../service/capacityUpdate.js';
+import { applyCapacityToProgressCard } from '../../../service/progressCardSync.js';
 
 // Status color constants for easier maintenance
 const STORY_STATUS_COLORS = {
@@ -76,6 +81,9 @@ const STORY_STATUS_COLORS = {
 class MissionControlEpicDetail extends HTMLElement {
   constructor() {
     super();
+    this._progressCard = null;
+    this._currentEpicId = '';
+    this._capacityCard = null;
   }
 
   static get observedAttributes() { return ['data']; }
@@ -148,10 +156,12 @@ class MissionControlEpicDetail extends HTMLElement {
       : 0;
     const percentComplete = Math.round(progress);
 
+    const capacity = loadCapacity(epic.id, 1.0);
     const progressCardData = {
       id: epic.id,
       title: epic.name,
       "title-link": epic.link || '',
+      capacity: capacity,
       progress: progress,
       blocked: blocked,
       remaining_points: epic.total_points - epic.points_complete,
@@ -215,7 +225,32 @@ class MissionControlEpicDetail extends HTMLElement {
     }
     // Keep global font for the ProgressCard
     progressCard.style.fontFamily = 'var(--global-font)';
+    progressCard.addEventListener('capacity-click', (e) => {
+      openCapacityModal(this._capacityCard, {
+        title: e.detail && e.detail.title ? e.detail.title : '',
+        id: e.detail && e.detail.id ? e.detail.id : '',
+        holidays: holidays || []
+      });
+    });
+    progressCard.addEventListener('capacity-change', (e) => {
+      const payload = getCapacityPayload(e.detail);
+      handleCapacityUpdate(this, payload, { dispatchEvent: true });
+      applyCapacityToProgressCard(this, payload.id, payload.capacity);
+    });
     container.appendChild(progressCard);
+    this._progressCard = progressCard;
+    this._currentEpicId = epic.id || '';
+
+    this._capacityCard = document.createElement('capacity-card');
+    this._capacityCard.addEventListener('capacity-close', () => {
+      closeCapacityModal(this._capacityCard);
+    });
+    this._capacityCard.addEventListener('capacity-updated', (e) => {
+      const payload = getCapacityPayload(e.detail);
+      handleCapacityUpdate(this, payload, { dispatchEvent: true });
+      applyCapacityToProgressCard(this, payload.id, payload.capacity);
+    });
+    container.appendChild(this._capacityCard);
 
     // Create expandable-row-list for stories
     const stories = Array.isArray(epic.stories) ? epic.stories : [];
@@ -314,6 +349,8 @@ class MissionControlEpicDetail extends HTMLElement {
     this.innerHTML = '';
     this.appendChild(container);
   }
+
+  
 }
 
 customElements.define('mission-control-epic-detail', MissionControlEpicDetail);

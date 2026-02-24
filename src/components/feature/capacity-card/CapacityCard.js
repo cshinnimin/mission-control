@@ -1,0 +1,702 @@
+/**
+ * CapacityCard Web Component (Feature)
+ *
+ * Usage:
+ * <capacity-card data='{"title":"Epic Name"}' open></capacity-card>
+ */
+class CapacityCard extends HTMLElement {
+  // Initialize component state and shadow DOM. Runs when the component is constructed.
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this._css = null;
+    this._cssLoaded = false;
+    this._pendingDataChange = false;
+    this._onKeyDown = null;
+    this._rows = [];
+    this._epicId = '';
+    this._targetCompletion = '';
+    this._holidays = [];
+    this._updateFeedbackTimer = null;
+    this._showUpdateFeedback = false;
+    this._confirmOpen = false;
+    this._baselineSnapshot = '';
+    this._baselineCapacityKey = '';
+  }
+
+  // Observe attribute changes to sync and re-render. Triggered when `data` or `open` attributes change.
+  static get observedAttributes() { return ['data', 'open']; }
+
+  // React to attribute updates and refresh state/UI. Runs when `data` or `open` changes.
+  attributeChangedCallback() {
+    if (!this._cssLoaded) {
+      this._pendingDataChange = true;
+      return;
+    }
+    this._syncFromData();
+    if (this.hasAttribute('open')) {
+      this._reloadFromStorage();
+    }
+    this._render();
+  }
+
+  // Initialize styles, state, and global key handling. Runs when the element is attached to the DOM.
+  connectedCallback() {
+    this._ensureCss().then(() => {
+      this._syncFromData();
+      if (this.hasAttribute('open')) {
+        this._reloadFromStorage();
+      }
+      this._render();
+    });
+    this._onKeyDown = (e) => {
+      if (e.key === 'Escape' && this.hasAttribute('open')) {
+        this._discardChangesAndClose('escape');
+      }
+    };
+    document.addEventListener('keydown', this._onKeyDown);
+  }
+
+  // Clean up listeners when the component is removed from the DOM.
+  disconnectedCallback() {
+    if (this._onKeyDown) {
+      document.removeEventListener('keydown', this._onKeyDown);
+      this._onKeyDown = null;
+    }
+  }
+
+  // Load component CSS once and then render. Called during initial attach.
+  async _ensureCss() {
+    if (this._cssLoaded) return;
+    try {
+      const url = new URL('./capacity-card.css', import.meta.url);
+      const res = await fetch(url.href);
+      this._css = await res.text();
+    } catch (e) {
+      this._css = '';
+    }
+    this._cssLoaded = true;
+    if (this._pendingDataChange) {
+      this._pendingDataChange = false;
+      this._render();
+    }
+  }
+
+  // Render the modal UI, row editor, warnings, and action buttons. Called after state changes.
+  _render() {
+    let raw = this.getAttribute('data') || '{}';
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
+    const title = parsed.title || '';
+    const isEditing = this._rows.some((r) => r.editing);
+    const hasRowError = this._rows.some((r) => r && r.error === 'required');
+    const today = this._todayLocalStr();
+    const targetCompletion = this._targetCompletion || today;
+    const isTargetPastOrToday = this._isPastOrToday(targetCompletion, today);
+    const capacityValue = this._calculateCapacityValue(today, targetCompletion, this._rows, this._holidays);
+    const capacityLabel = capacityValue == null ? 'Capacity: TBD' : `Capacity: ${capacityValue}`;
+
+    this.shadowRoot.innerHTML = `
+      <style>${this._css || ''}</style>
+      <div class="backdrop" aria-hidden="true"></div>
+      <div class="modal" role="dialog" aria-modal="true" aria-label="Capacity Planner">
+        <div class="title">${this._escapeHtml(title)}</div>
+        <div class="subtitle">Capacity Planner</div>
+        <div class="target-row">
+          <label class="target-label" for="capacity-target-date">Target Completion:</label>
+          <input type="date" id="capacity-target-date" class="input date target${isTargetPastOrToday ? ' warning' : ''}" ${isTargetPastOrToday ? 'title="Capacity calculation restricted to future target dates"' : ''} value="${this._escapeHtml(targetCompletion)}" />
+        </div>
+        <div class="capacity-editor${hasRowError ? ' has-error' : ''}">
+          <div class="rows">
+            ${this._rows.map((row, index) => {
+              if (row.editing) {
+                const startValue = row.start || today;
+                const endValue = row.end || today;
+                const isWarning = this._isAfterDate(endValue, targetCompletion);
+                const hasError = row.error === 'required';
+                return `
+                  <div class="row editing" data-index="${index}">
+                    <div class="field-group">
+                      <input type="text" class="input name${hasError ? ' error' : ''}" placeholder="Developer" value="${this._escapeHtml(row.name || '')}" />
+                      ${hasError ? '<div class="field-error">Required</div>' : ''}
+                    </div>
+                    <input type="date" class="input date start" value="${this._escapeHtml(startValue)}" />
+                    <input type="date" class="input date end${isWarning ? ' warning' : ''}" ${isWarning ? 'title="Dates past target completion ignored"' : ''} value="${this._escapeHtml(endValue)}" />
+                    <div class="row-actions">
+                      <button type="button" class="row-btn cancel" aria-label="Cancel">X</button>
+                      <button type="button" class="row-btn save" aria-label="Save">✓</button>
+                    </div>
+                  </div>
+                `;
+              }
+
+              const isWarning = this._isAfterDate(row.end, targetCompletion);
+              return `
+                <div class="row saved" data-index="${index}">
+                  <div class="label name">${this._escapeHtml(row.name)}</div>
+                  <div class="label date">${this._escapeHtml(row.start)}</div>
+                  <div class="label date${isWarning ? ' warning' : ''}" ${isWarning ? 'title="Dates past target completion ignored"' : ''}>${this._escapeHtml(row.end)}</div>
+                  <div class="row-actions">
+                    <button type="button" class="row-btn delete" aria-label="Delete">X</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          ${isEditing ? '' : `
+            <div class="add-row">
+              <button type="button" class="capacity-btn add" aria-label="Add capacity row">+</button>
+            </div>
+          `}
+        </div>
+        <div class="capacity-summary">${this._escapeHtml(capacityLabel)}</div>
+        <div class="actions">
+          <button type="button" class="btn update">Update Capacity</button>
+          <span class="update-feedback" aria-live="polite">${this._showUpdateFeedback ? '✓' : ''}</span>
+          <button type="button" class="btn cancel">Cancel</button>
+          <button type="button" class="btn primary ok">Save</button>
+        </div>
+      </div>
+      ${this._confirmOpen ? `
+        <div class="confirm-backdrop" aria-hidden="true"></div>
+        <div class="confirm-modal" role="dialog" aria-modal="true" aria-label="Confirm save">
+          <div class="confirm-title">There have been changes since the capacity has updated. What do you wish to do?</div>
+          <div class="confirm-actions">
+            <button type="button" class="btn confirm-cancel">Cancel</button>
+            <button type="button" class="btn confirm-save">Save Without Update</button>
+            <button type="button" class="btn primary confirm-save-update">Save With Update</button>
+          </div>
+        </div>
+      ` : ''}
+    `;
+
+    const cancelBtn = this.shadowRoot.querySelector('.btn.cancel');
+    const okBtn = this.shadowRoot.querySelector('.btn.ok');
+    const updateBtn = this.shadowRoot.querySelector('.btn.update');
+    const backdrop = this.shadowRoot.querySelector('.backdrop');
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => this._discardChangesAndClose('cancel'));
+    }
+    if (okBtn) {
+      okBtn.addEventListener('click', () => this._handleSaveClick());
+    }
+    if (updateBtn) {
+      updateBtn.addEventListener('click', () => this._updateCapacity());
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    }
+
+    const targetInput = this.shadowRoot.querySelector('.input.date.target');
+    if (targetInput) {
+      targetInput.addEventListener('change', () => {
+        this._targetCompletion = targetInput.value;
+        this._syncEditingRowInputs();
+        this._render();
+      });
+    }
+
+    if (this._confirmOpen) {
+      const confirmCancel = this.shadowRoot.querySelector('.confirm-cancel');
+      const confirmSave = this.shadowRoot.querySelector('.confirm-save');
+      const confirmSaveUpdate = this.shadowRoot.querySelector('.confirm-save-update');
+      if (confirmCancel) {
+        confirmCancel.addEventListener('click', () => {
+          this._confirmOpen = false;
+          this._render();
+        });
+      }
+      if (confirmSave) {
+        confirmSave.addEventListener('click', () => {
+          this._confirmOpen = false;
+          this._saveAllRows(false);
+        });
+      }
+      if (confirmSaveUpdate) {
+        confirmSaveUpdate.addEventListener('click', () => {
+          this._confirmOpen = false;
+          this._saveAllRows(true);
+        });
+      }
+    }
+
+    const addBtn = this.shadowRoot.querySelector('.capacity-btn.add');
+    if (addBtn) {
+      addBtn.addEventListener('click', () => this._startNewRow());
+    }
+
+    const rows = this.shadowRoot.querySelectorAll('.row');
+    rows.forEach((rowEl) => {
+      const index = parseInt(rowEl.getAttribute('data-index'), 10);
+      if (Number.isNaN(index)) return;
+
+      if (rowEl.classList.contains('editing')) {
+        const cancelBtn = rowEl.querySelector('.row-btn.cancel');
+        const saveBtn = rowEl.querySelector('.row-btn.save');
+        if (cancelBtn) {
+          cancelBtn.addEventListener('click', () => this._cancelRow(index));
+        }
+        if (saveBtn) {
+          saveBtn.addEventListener('click', () => this._saveRow(index));
+        }
+      } else {
+        const deleteBtn = rowEl.querySelector('.row-btn.delete');
+        if (deleteBtn) {
+          deleteBtn.addEventListener('click', () => this._deleteRow(index));
+        }
+      }
+    });
+  }
+
+  // Add a new editable row with default values. Invoked when the user presses the "+" button at the bottom-right of the rows area.
+  _startNewRow() {
+    const today = this._todayLocalStr();
+    this._rows.push({
+      name: '',
+      start: today,
+      end: today,
+      editing: true,
+      error: null
+    });
+    this._render();
+  }
+
+  // Remove a pending row without saving. Invoked when the user clicks the row-level "X" while editing.
+  _cancelRow(index) {
+    const row = this._rows[index];
+    if (!row || !row.editing) return;
+    this._rows.splice(index, 1);
+    this._render();
+  }
+
+  // Validate and save a single row out of edit mode. Invoked when the user clicks the row-level checkmark.
+  // If the Developer name is empty, shows the inline "Required" validation.
+  _saveRow(index) {
+    const row = this._rows[index];
+    if (!row || !row.editing) return;
+
+    const rowEl = this.shadowRoot.querySelector(`.row.editing[data-index="${index}"]`);
+    if (!rowEl) return;
+
+    const nameInput = rowEl.querySelector('.input.name');
+    const startInput = rowEl.querySelector('.input.start');
+    const endInput = rowEl.querySelector('.input.end');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const start = startInput ? startInput.value : '';
+    const end = endInput ? endInput.value : '';
+
+    if (!name) {
+      this._rows[index] = {
+        ...row,
+        error: 'required'
+      };
+      this._render();
+      return;
+    }
+
+    this._rows[index] = {
+      name: name,
+      start: start || this._todayLocalStr(),
+      end: end || this._todayLocalStr(),
+      editing: false,
+      error: null
+    };
+    this._render();
+  }
+
+  // Sync DOM input values into row state without saving. Used before re-rendering so edits aren't lost.
+  _syncEditingRowInputs() {
+    const editingRows = this.shadowRoot.querySelectorAll('.row.editing');
+    editingRows.forEach((rowEl) => {
+      const index = parseInt(rowEl.getAttribute('data-index'), 10);
+      if (Number.isNaN(index) || !this._rows[index]) return;
+      const nameInput = rowEl.querySelector('.input.name');
+      const startInput = rowEl.querySelector('.input.start');
+      const endInput = rowEl.querySelector('.input.end');
+      const name = nameInput ? nameInput.value : '';
+      const start = startInput ? startInput.value : '';
+      const end = endInput ? endInput.value : '';
+
+      this._rows[index] = {
+        ...this._rows[index],
+        name,
+        start,
+        end
+      };
+    });
+  }
+
+  // Delete a saved row. Invoked when the user clicks the row-level "X" for a saved row.
+  _deleteRow(index) {
+    if (index < 0 || index >= this._rows.length) return;
+    this._rows.splice(index, 1);
+    this._render();
+  }
+
+  // Close the modal and emit a close event. Used by Cancel or Save flows to exit.
+  _requestClose(action) {
+    this.removeAttribute('open');
+    this.dispatchEvent(new CustomEvent('capacity-close', {
+      detail: { action },
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  // Revert in-memory edits and close the modal. Invoked when the user clicks Cancel or presses Escape.
+  _discardChangesAndClose(action) {
+    this._reloadFromStorage();
+    this._render();
+    this._requestClose(action);
+  }
+
+  // Read epic id and holidays from the data attribute. Invoked on `data` attribute updates.
+  _syncFromData() {
+    let raw = this.getAttribute('data') || '{}';
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (e) { parsed = {}; }
+    const id = parsed.id || '';
+    const holidays = Array.isArray(parsed.holidays) ? parsed.holidays : [];
+    this._holidays = holidays;
+    if (id) {
+      this._epicId = id;
+    }
+  }
+
+  // Load saved rows/target for the current epic. Invoked when opening the modal to show persisted state.
+  _reloadFromStorage() {
+    if (!this._epicId) return;
+    const loaded = this._loadRows(this._epicId);
+    this._rows = loaded.rows;
+    this._targetCompletion = loaded.targetCompletion;
+    this._confirmOpen = false;
+    this._baselineSnapshot = this._getSnapshotFromState();
+    this._baselineCapacityKey = this._getCapacityValueKey();
+  }
+
+  // Persist rows/target, optionally update capacity, then close. Invoked by Save or the confirmation modal choices.
+  _saveAllRows(withUpdate = false) {
+    const today = this._todayLocalStr();
+
+    const merged = this._rows.map((row, index) => {
+      if (!row.editing) return row;
+
+      const rowEl = this.shadowRoot.querySelector(`.row.editing[data-index="${index}"]`);
+      if (!rowEl) return row;
+
+      const nameInput = rowEl.querySelector('.input.name');
+      const startInput = rowEl.querySelector('.input.start');
+      const endInput = rowEl.querySelector('.input.end');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const start = startInput ? startInput.value : '';
+      const end = endInput ? endInput.value : '';
+
+      return {
+        name: name || 'Developer',
+        start: start || today,
+        end: end || today,
+        editing: false
+      };
+    });
+
+    this._rows = merged.map((row) => ({
+      name: row.name,
+      start: row.start,
+      end: row.end,
+      editing: false
+    }));
+
+    const targetInput = this.shadowRoot.querySelector('.input.date.target');
+    const targetValue = targetInput ? targetInput.value : today;
+    this._targetCompletion = targetValue || today;
+
+    if (this._epicId) {
+      try {
+        const rowsKey = `capacity-card-rows-${this._epicId}`;
+        localStorage.setItem(rowsKey, JSON.stringify(this._rows));
+        const targetKey = `capacity-card-target-${this._epicId}`;
+        localStorage.setItem(targetKey, this._targetCompletion);
+      } catch (e) {
+        console.warn('Failed to save capacity rows to localStorage:', e);
+      }
+    }
+
+    if (withUpdate) {
+      this._updateCapacity();
+    }
+
+    this._baselineSnapshot = this._getSnapshotFromState();
+    this._baselineCapacityKey = this._getCapacityValueKey();
+
+    this._render();
+    this._requestClose('ok');
+  }
+
+  // Dispatch capacity update and update baselines. Invoked when the user clicks "Update Capacity" or chooses "Save With Update".
+  _updateCapacity() {
+    this._syncEditingRowInputs();
+    const targetInput = this.shadowRoot.querySelector('.input.date.target');
+    if (targetInput && targetInput.value) {
+      this._targetCompletion = targetInput.value;
+    }
+    const today = this._todayLocalStr();
+    const target = this._targetCompletion || today;
+    const capacityValue = this._calculateCapacityValue(today, target, this._rows, this._holidays);
+
+    if (capacityValue != null && this._epicId) {
+      this.dispatchEvent(new CustomEvent('capacity-updated', {
+        detail: {
+          id: this._epicId,
+          capacity: Number(capacityValue)
+        },
+        bubbles: true,
+        composed: true
+      }));
+    }
+
+    this._baselineSnapshot = this._getSnapshot();
+    this._baselineCapacityKey = this._normalizeCapacityValue(capacityValue);
+
+    this._showUpdateFeedback = true;
+    if (this._updateFeedbackTimer) {
+      clearTimeout(this._updateFeedbackTimer);
+    }
+    this._updateFeedbackTimer = setTimeout(() => {
+      this._showUpdateFeedback = false;
+      const feedbackEl = this.shadowRoot.querySelector('.update-feedback');
+      if (feedbackEl) feedbackEl.textContent = '';
+    }, 900);
+    const feedbackEl = this.shadowRoot.querySelector('.update-feedback');
+    if (feedbackEl) feedbackEl.textContent = '✓';
+  }
+
+  // Handle Save click with optional confirmation flow. Invoked when the user clicks "Save".
+  _handleSaveClick() {
+    this._syncEditingRowInputs();
+    if (this._shouldConfirmSave()) {
+      this._confirmOpen = true;
+      this._render();
+      return;
+    }
+    this._saveAllRows(false);
+  }
+
+  // Determine whether confirmation is required before saving. Used to decide if the warning modal should appear.
+  _shouldConfirmSave() {
+    const snapshot = this._getSnapshot();
+    const capacityKey = this._getCapacityValueKey();
+    if (this._baselineCapacityKey && capacityKey === this._baselineCapacityKey) {
+      return false;
+    }
+    return this._baselineSnapshot && snapshot !== this._baselineSnapshot;
+  }
+
+  // Snapshot current editable state including in-progress inputs. Used to detect changes since last baseline.
+  _getSnapshot() {
+    const today = this._todayLocalStr();
+    const targetInput = this.shadowRoot.querySelector('.input.date.target');
+    const target = targetInput ? targetInput.value : (this._targetCompletion || today);
+    const rows = this._rows.map((row) => ({
+      name: row.name || '',
+      start: row.start || '',
+      end: row.end || ''
+    }));
+    return JSON.stringify({ target, rows });
+  }
+
+  // Snapshot current stored state from component fields. Used as the baseline after load or save.
+  _getSnapshotFromState() {
+    const today = this._todayLocalStr();
+    const target = this._targetCompletion || today;
+    const rows = this._rows.map((row) => ({
+      name: row.name || '',
+      start: row.start || '',
+      end: row.end || ''
+    }));
+    return JSON.stringify({ target, rows });
+  }
+
+  // Compute normalized capacity value for comparison. Used to determine if capacity calculation changed.
+  _getCapacityValueKey() {
+    const today = this._todayLocalStr();
+    const target = this._targetCompletion || today;
+    const value = this._calculateCapacityValue(today, target, this._rows, this._holidays);
+    return this._normalizeCapacityValue(value);
+  }
+
+  // Normalize capacity for stable comparison. Keeps comparisons consistent to two decimals.
+  _normalizeCapacityValue(value) {
+    if (value == null || !isFinite(Number(value))) return 'null';
+    return Number(value).toFixed(2);
+  }
+
+  // Load rows and target completion from storage for an epic. Used when opening the modal or switching epics.
+  _loadRows(id) {
+    try {
+      const key = `capacity-card-rows-${id}`;
+      const stored = localStorage.getItem(key);
+      const targetKey = `capacity-card-target-${id}`;
+      const targetStored = localStorage.getItem(targetKey);
+      const today = this._todayLocalStr();
+      const targetCompletion = targetStored || today;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return {
+            rows: parsed.map((row) => ({
+              name: row.name || 'Developer',
+              start: row.start || today,
+              end: row.end || today,
+              editing: false
+            })),
+            targetCompletion
+          };
+        }
+      }
+      return { rows: [], targetCompletion };
+    } catch (e) {
+      console.warn('Failed to load capacity rows from localStorage:', e);
+    }
+    return { rows: [], targetCompletion: this._todayLocalStr() };
+  }
+
+  // Calculate capacity ratio based on remaining days and developer days. Used for the summary and Update Capacity.
+  _calculateCapacityValue(todayStr, targetStr, rows, holidays = []) {
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    const holidaySet = new Set((holidays || []).map((h) => this._normalizeDateStr(h)).filter(Boolean));
+    const remainingDays = this._countBusinessDaysAfter(todayStr, targetStr, holidaySet);
+    if (!remainingDays) return null;
+
+    const developerDays = rows.reduce((sum, row) => {
+      if (!row || row.editing) return sum;
+      const start = this._maxDateStr(todayStr, row.start);
+      const end = this._minDateStr(targetStr, row.end);
+      if (!start || !end) return sum;
+      const days = this._countBusinessDaysAfter(start, end, holidaySet);
+      return sum + days;
+    }, 0);
+
+    const value = developerDays / remainingDays;
+    if (!isFinite(value)) return null;
+    return value.toFixed(2);
+  }
+
+  // Update the capacity summary label in the UI. Used after target date changes to refresh the label.
+  _updateCapacitySummary() {
+    const today = this._todayLocalStr();
+    const target = this._targetCompletion || today;
+    const capacityValue = this._calculateCapacityValue(today, target, this._rows, this._holidays);
+    const label = capacityValue == null ? 'Capacity: TBD' : `Capacity: ${capacityValue}`;
+    const summaryEl = this.shadowRoot.querySelector('.capacity-summary');
+    if (summaryEl) summaryEl.textContent = label;
+  }
+
+  // Count business days starting the day after startStr through endStr. Core helper for capacity math.
+  _countBusinessDaysAfter(startStr, endStr, holidaySet) {
+    const startDate = this._dateFromStr(startStr);
+    const endDate = this._dateFromStr(endStr);
+    if (!startDate || !endDate) return 0;
+    if (endDate < startDate) return 0;
+
+    let current = new Date(startDate);
+    current.setDate(current.getDate() + 1);
+
+    let count = 0;
+    while (current <= endDate) {
+      if (this._isBusinessDay(current, holidaySet)) count += 1;
+      current.setDate(current.getDate() + 1);
+    }
+    return count;
+  }
+
+  // Determine if a given date is a business day (excluding weekends/holidays).
+  _isBusinessDay(date, holidaySet) {
+    const day = date.getDay();
+    if (day === 0 || day === 6) return false;
+    const dateStr = this._localDateStr(date);
+    return !holidaySet.has(dateStr);
+  }
+
+  // Parse a YYYY-MM-DD string into a Date for local date math.
+  _dateFromStr(str) {
+    if (!str) return null;
+    const date = new Date(str + 'T00:00:00');
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  // Normalize any date string into local YYYY-MM-DD for consistent comparisons.
+  _normalizeDateStr(str) {
+    const date = this._dateFromStr(str);
+    return date ? this._localDateStr(date) : '';
+  }
+
+  // Get today's local date string (avoids UTC date shifts).
+  _todayLocalStr() {
+    return this._localDateStr(new Date());
+  }
+
+  // Format a Date object as local YYYY-MM-DD (used for comparisons and storage keys).
+  _localDateStr(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // Return the later of two date strings (used to clamp ranges to today/target).
+  _maxDateStr(a, b) {
+    const da = this._dateFromStr(a);
+    const db = this._dateFromStr(b);
+    if (!da && !db) return '';
+    if (!da) return b;
+    if (!db) return a;
+    return da >= db ? a : b;
+  }
+
+  // Return the earlier of two date strings (used to clamp ranges to today/target).
+  _minDateStr(a, b) {
+    const da = this._dateFromStr(a);
+    const db = this._dateFromStr(b);
+    if (!da && !db) return '';
+    if (!da) return b;
+    if (!db) return a;
+    return da <= db ? a : b;
+  }
+
+  // Check if dateStr is strictly after targetStr (used for end-date warning highlight).
+  _isAfterDate(dateStr, targetStr) {
+    const d = this._dateFromStr(dateStr);
+    const t = this._dateFromStr(targetStr);
+    if (!d || !t) return false;
+    return d > t;
+  }
+
+  // Check if dateStr is today or in the past (used for target-date warning highlight).
+  _isPastOrToday(dateStr, todayStr) {
+    const d = this._dateFromStr(dateStr);
+    const t = this._dateFromStr(todayStr);
+    if (!d || !t) return false;
+    return d <= t;
+  }
+
+  // Escape HTML to safely render text content in the template.
+  _escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+}
+
+customElements.define('capacity-card', CapacityCard);
+
+export default CapacityCard;

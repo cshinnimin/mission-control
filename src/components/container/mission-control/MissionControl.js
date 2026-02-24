@@ -174,6 +174,20 @@ class MissionControl extends HTMLElement {
       this.render();
     });
 
+    const onCapacityUpdated = (e) => {
+      const id = e.detail && e.detail.id ? e.detail.id : '';
+      const capacity = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
+      if (!id || capacity == null) return;
+      if (this._state.currentView === 'epic-detail' && this._state.selectedEpic && this._state.selectedEpic.id === id) {
+        if (typeof epicDetail.applyCapacityUpdate === 'function') {
+          epicDetail.applyCapacityUpdate(id, capacity);
+        }
+      }
+    };
+
+    overview.addEventListener('capacity-updated', onCapacityUpdated);
+    epicDetail.addEventListener('capacity-updated', onCapacityUpdated);
+
     container.appendChild(overview);
     container.appendChild(epicDetail);
 
