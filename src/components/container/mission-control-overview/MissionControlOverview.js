@@ -171,7 +171,6 @@ class MissionControlOverview extends HTMLElement {
       const capacity = e.detail && typeof e.detail.capacity === 'number' ? e.detail.capacity : null;
       if (!id || capacity == null) return;
       this._persistCapacity(id, capacity);
-      this._applyCapacityUpdate(id, capacity);
     });
 
     this.innerHTML = '';
